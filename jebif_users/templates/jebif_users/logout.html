@@ -1,0 +1,21 @@
+{% extends "jebif_website/base.html" %}
+
+{% block title %}
+Logged Out
+{% endblock title %}
+
+{% block content %}
+
+<div>
+    <h2>Déconnexion</h2>
+    <form action="{% url 'logout' %}" method="POST" class="form-group my-3 col-6">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Déconnexion</button>
+    </form>
+    <div class="border-top pt-3">
+                <small class="text-muted">
+                    <a href="{% url 'login' %}">Reconnexion</a>
+                </small>
+            </div>
+</div>
+{% endblock content %}

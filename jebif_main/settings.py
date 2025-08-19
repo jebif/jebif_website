@@ -57,7 +57,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'jebif_website',
+    'jebif_users',
     'tinymce',          #requires: pip install django-tinymce
+    'crispy_forms',     #for nicer form
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -162,3 +165,12 @@ TINYMCE_DEFAULT_CONFIG = {
     "file_picker_types": "image",
     "images_upload_url": "/upload_image/",  # a Django view to upload images
 }
+
+# To change for Crispy, to make nicer forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+
+# To redirect after connexion (maybe will be changed)
+LOGIN_REDIRECT_URL = '/website/'

@@ -1,0 +1,8 @@
+
+<div>
+    <h2>Sign Out</h2>
+    <form action="{% url 'button_logout' %}" method="POST" class="form-group my-3 col-6">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Logout</button>
+    </form>
+</div>
