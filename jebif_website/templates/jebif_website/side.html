@@ -1,0 +1,96 @@
+
+    <div class="col-12 col-md-4">
+
+        <!--Event part-->
+        <div class="card mb-3">
+            <div class="card-body ">
+                <h5 class="card-title">Prochains Evènements</h5>
+                {% for event in events_sidebar %}
+                    <ul>
+                        <li>{{ event.title }} : {{event.date}} à {{event.localisation}}</li>
+                    </ul>
+                {% empty %}
+                    <ul><li>Pas d'évènement à venir</li></ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!--Platforms/Social Networks part-->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">À propos</h5>
+                Suivez nous sur / Follow us on : 
+                {% for platform in platforms_sidebar %}
+                    <ul>
+                        <li>
+                        {{platform.title}} : <a href="{{ platform.url }}">{{platform.identification}}</a>
+                        </li>
+                    </ul>
+                {% empty %}
+                    <ul><li>Aucune plateforme disponible</li></ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!--Links part-->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">LIENS</h5>
+                {% for item in images_sidebar %}
+                    <div class="mb-2">
+                        <a href="{{ item.url }}">
+                            <img src="{{ item.image.url }}" alt="{{ item.titre }}" class="img-fluid rounded" style="max-width:150px; height:auto;">
+                        </a>
+                    </div>
+                {% empty %}
+                    <ul><li>Aucun lien disponible</li></ul>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!--IRC part-->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">IRC</h5>
+                <ul>
+                    <li>channel IRC: <a href="http://webchat.freenode.net/?channels=jebif">#jebif</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!--Recent Articles part-->
+        <div class="card mb-3">
+            <div class="card-body ">
+                <h5 class="card-title">Articles récents</h5>
+                <ul>
+                    {% for article in recent_articles %}
+                        <li><a href="#"> {{article.title}} </a> </li>
+                    {% empty %}
+                        <li>Aucun article publié</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!--RSS part-->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">RSS</h5>
+                <p><a href="https://jebif.fr/mentions-legales/feed/">RSS - Articles</a></p>
+                <p><a href="https://jebif.fr/mentions-legales/comments/feed/">RSS - Commentaires</a></p>
+            </div>
+        </div>
+
+        <!--licence part-->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Licence</h5>
+                Le logo de JeBiF est propriété de l'ISCB.
+                <p>{% load static %}
+                <img src="{% static 'jebif_website/images/CreativeCommon88x31.png' %}" alt="creativecommon">
+                </p>
+                À l'exception du logo de l'association, ce blog et son contenu sont sous licence <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+            </div>
+        </div>
+        
+    </div>

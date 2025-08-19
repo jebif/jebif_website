@@ -1,0 +1,73 @@
+
+<hr class="my-4"> 
+<nav class="navbar navbar-expand-lg navbar-light bg-light bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'home' %}">Accueil</a>
+        <button class="navbar-toggler"
+            data-bs-toggle="collapse" 
+            data-bs-target="#navbarNavDropdown" 
+            aria-controls="navbarNavDropdown" 
+            aria-expanded="false" 
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+         <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav me-auto">
+                {% for category in categories_nav %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" 
+                        href="{% url 'articles_per_category' category.slug %}" 
+                        id="navbarDropdown{{ category.id }}"
+                        role="button" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false">
+                        {{ category.name }}
+                    </a>
+                    {% if category.subcategory.all %}
+                        <ul class="dropdown-menu">
+                            {% for subcat in category.subcategory.all %}
+                                <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+
+                <span class="navbar-nav">
+                    {% if request.user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Sign Out</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Sign In</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </span>
+            </ul>
+            
+        </div>
+    </div>
+</nav>
+<hr class="my-4">  
+
+<!--<style>
+    nav ul { list-style:none; padding:0; margin:0; }
+    nav ul li:hover > ul { display:block; }
+    nav ul li ul li { display:block; }
+</style> -->
+
+<style>
+/* Supprime le comportement par défaut de Bootstrap pour le clic */
+.nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+/* Optionnel : pour éviter le décalage du menu */
+.nav-item.dropdown .dropdown-menu {
+    margin-top: 0;
+}
+</style>

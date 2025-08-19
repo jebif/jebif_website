@@ -1,0 +1,24 @@
+{% extends 'jebif_website/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-12 mx-md-auto my-md-5 py-md-5">
+            {% for article in articles %}
+
+                {% if article %}
+                    <div>
+                        <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
+                        {{article.content|safe}}
+                    </div>
+                    
+                {% endif %}
+
+            {% endfor %}
+        </div>
+        
+            {% include 'jebif_website/side.html' %}
+
+    </div>
+</div>
+{% endblock %}

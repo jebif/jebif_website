@@ -1,0 +1,54 @@
+{% extends 'jebif_website/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-12">
+            {% for article in articles %}
+
+                {% if article %}
+                        <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
+                        <div>{{article.content|safe}}</div>
+                    
+                {% endif %}
+
+            {% endfor %}
+
+            <!-- Pagination -->
+            <nav>
+                <ul class="pagination">
+                    <div class="mx-auto d-flex flex-row mt-5">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page= {{ page_obj.previous_page_number}}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item">
+                            <a class="page-link" href="#">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</a>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page= {{ page_obj.next_page_number}}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page= {{ page_obj.paginator.num_pages}}">Last &raquo;</a>
+                            </li>
+
+                        {% endif %}
+
+                    </div>
+                </ul>
+            </nav>
+        </div>
+        <!-- Sidebar -->
+        {% include 'jebif_website/side.html' %}
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'jebif_website/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+
+                <div>
+                    <h3>{{article.title}}</h3>
+                    {{article.content|safe}}
+                </div>
+    </div>
+
+    {% include 'jebif_website/side.html' %}
+
+</div>
+{% endblock %}
