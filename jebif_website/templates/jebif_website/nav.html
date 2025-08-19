@@ -34,9 +34,10 @@
 
                 <span class="navbar-nav">
                     {% if request.user.is_authenticated %}
-                        <li class="nav-item">
+                        <!--<li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="{% url 'logout' %}">Déconnexion</a>
-                        </li>
+                        </li>-->
+                        {% include 'jebif_users/button_logout.html'%}
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Connexion</a>
