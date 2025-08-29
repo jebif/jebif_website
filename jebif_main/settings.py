@@ -174,3 +174,28 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # To redirect after connexion (maybe will be changed)
 LOGIN_REDIRECT_URL = '/website/'
+
+
+#### Settings for old
+ROOT_URL="app/"   
+HTTP_DOMAIN="http://jebif.fr"
+LOGIN_URL = f"/{ROOT_URL}accounts/login/"
+LOGIN_REDIRECT_URL = f"/{ROOT_URL}membership/subscription/me/update/"
+REQUIRE_LOGIN_PATH = LOGIN_URL
+EMAIL_SUBJECT_PREFIX = "[JeBiF] "
+SERVER_EMAIL="admin@jebif.fr"
+
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = Path(str(BASE_DIR) + '/media')
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash if there is a path component (optional in other cases).
+# Examples: "http://media.lawrence.com", "http://example.com/media/"
+MEDIA_URL = '/' + str(ROOT_URL) + 'media/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Dossier contenant vos fichiers statiques
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
