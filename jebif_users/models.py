@@ -5,41 +5,60 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.template.defaultfilters import slugify
 from django.db.transaction import atomic
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 User = get_user_model() 
 
-class MembershipInfo( models.Model ) :
-	user = models.ForeignKey(User,  on_delete=models.SET_NULL, blank=True, null=True)
+#To get a default end_membership
+def default_end_membership():
+    return datetime.date.today() + datetime.timedelta(days=365)
+
+def end_membership(base=None) :
+		d = base
+		if d is None :
+			d = datetime.date.today()
+		try :
+			end = datetime.date(d.year+1,d.month,d.day)
+		except ValueError :
+			end = datetime.date(d.year+1,d.month,d.day-1)
+		return end - datetime.timedelta(1)
+
+class UserInfo( models.Model ) :
+	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="info")	#to access it from user: user.info
 	email = models.EmailField(unique=True)
 	firstname = models.CharField("Prénom", max_length=75)
 	lastname = models.CharField("Nom", max_length=75)
-	laboratory_name = models.CharField("Laboratoire", max_length=75)
-	laboratory_city = models.CharField("Ville", max_length=75)
-	laboratory_cp = models.CharField("Code Postal", max_length=7)
-	laboratory_country = models.CharField("Pays", max_length=75)
+	laboratory = models.CharField("Laboratoire", max_length=75)
+	city_name = models.CharField("Ville", max_length=75)
+	city_cp = models.CharField("Code Postal", max_length=7)
+	country = models.CharField("Pays", max_length=75)
 	position = models.CharField("Poste actuel", max_length=75)
 	motivation = models.TextField("Motivation pour adhérer", blank=True)
 
 	inscription_date = models.DateField(default=datetime.date.today)
-	active = models.BooleanField(default=False)
-	deleted = models.BooleanField(default=False)
+	#is_active = models.BooleanField(default=False) #changed for is_member, was doublon with is_active from user
+	is_member = models.BooleanField(default=False)
+	is_deleted = models.BooleanField(default=False) 
+	begin_membership = models.DateField(default=datetime.date.today)
+	end_membership = models.DateField(default=default_end_membership)
 	
 	def __str__( self ) :
-		return f"{self.firstname} {self.lastname} <{self.email}> {'(inactive)' if not self.active else ''}"
+		return f"{self.firstname} {self.lastname} <{self.user.email}> {'(inactive)' if not self.is_member else ''}"
 
 	def latter_membership( self ) :
 		try :
-			return Membership.objects.filter(info=self).order_by("-date_begin")[0]
+			return User.objects.filter(info=self).order_by("-date_begin")[0]
 		except IndexError :
 			print(f"No membership for {self} !")
 			raise
 
-	@atomic			
+	"""@atomic	# NOT NEEDED ANYMORE?
 	def make_user( self ) :
 		if self.user is not None :
 			return None
-		# 1. try to find a User matching email
-		matching = User.objects.filter(email=self.email, is_active=True)
+		# 1. try to find a User matching email #not anymore, email field removed
+		matching = User.objects.filter(info=self, is_member=True)	#What about inactive user?
 		if matching :
 			self.user = matching[0]
 			if len(matching) > 1 :
@@ -60,10 +79,10 @@ class MembershipInfo( models.Model ) :
 				salt += 1
 			self.user = User.objects.create_user(login, self.email, passwd)
 			self.save()
-			return passwd
+			return passwd"""
 
 
-	def get_contact_data( self ) :
+	"""def get_contact_data( self ) :
 		def ensure_ROOT( url ) :
 			if url[1:].startswith(settings.ROOT_URL) :
 				return url
@@ -80,52 +99,47 @@ class MembershipInfo( models.Model ) :
 			"login" : self.user.username,
 			"passwd_setup" : " et ton mot de passe '%s'" % new_passwd if new_passwd is not None 
 								else ""
-		}
+		}"""
 
 	class Meta :
-		verbose_name = "membre"
+		verbose_name = "UserInfo"
 
+	def get_end_membership(base=None) :
+		d = base
+		if d is None :
+			d = datetime.date.today()
+		try :
+			end = datetime.date(d.year+1,d.month,d.day)
+		except ValueError :
+			end = datetime.date(d.year+1,d.month,d.day-1)
+		return end - datetime.timedelta(1)
 
-def end_membership(base=None) :
-	d = base
-	if d is None :
-		d = datetime.date.today()
-	try :
-		end = datetime.date(d.year+1,d.month,d.day)
-	except ValueError :
-		end = datetime.date(d.year+1,d.month,d.day-1)
-	return end - datetime.timedelta(1)
-
-
-class Membership( models.Model ) :
-	info = models.ForeignKey(MembershipInfo, on_delete=models.SET_NULL, blank=True, null=True) # NOT SURE IF ON_DELETE IS CORRECTLY PARAMETED
-	date_begin = models.DateField()
-	date_end = models.DateField(default=end_membership)
-
-	def init_date( self, date_begin ) :
-		self.date_begin = date_begin
-		self.date_end = end_membership(self.date_begin)
+	def init_date( self, begin_membership ) :
+		self.begin_membership = begin_membership
+		self.end_membership = self.get_end_membership(self.begin_membership)
 	
 	def has_expired( self ) :
-		return self.date_end < datetime.date.today()
+		return self.end_membership < datetime.date.today()
 	
 	def expire_delta( self ) :
-		return self.date_end - datetime.date.today() + datetime.timedelta(1)
+		return self.end_membership - datetime.date.today() + datetime.timedelta(1)
 
 	@classmethod	
 	def current_objects( cls ) :	#celf replaced by cls, dunno what is celf
 		today = datetime.date.today()	#added the missing ()
 		return cls.objects.filter(info__active=True,
-					date_begin__lte=today, date_end__gt=today)
-
-	def __str__( self ) :		#changed unicode to str because now it's always unicode
-		return f"{self.date_begin}/{self.date_end} {self.info}"
+					begin_membership__lte=today, end_membership__gt=today)
 	
 
-class MembershipInfoEmailChange( models.Model ) :
-	date = models.DateField(default=datetime.date.today)
-	info = models.ForeignKey(MembershipInfo, on_delete=models.SET_NULL, blank=True, null=True) # NOT SURE IF ON_DELETE IS CORRECTLY PARAMETED
-	old_email = models.EmailField()
+"""# ---- Automatic creation of UserInfo when a User is created ---- #shouldn't be required since both forms are done at the same time
+@receiver(post_save, sender=User)
+def create_user_info(sender, instance, created, **kwargs):
+    if created:
+        UserInfo.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_info(sender, instance, **kwargs):
+    instance.info.save()"""
 
 
 class DatabaseInfo( models.Model ) : 

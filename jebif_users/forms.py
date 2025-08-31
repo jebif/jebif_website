@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm, Form, EmailField, ValidationError
 
-from .models import MembershipInfo
+from .models import UserInfo
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
@@ -14,21 +14,21 @@ class UserRegisterForm(UserCreationForm):
 
 
 # Potential conflict here
-class MembershipInfoForm( ModelForm ) :
+class UserInfoForm( ModelForm ) :
 	class Meta :
-		model = MembershipInfo
-		fields = ("firstname", "lastname", "email", 
-						"laboratory_name", "laboratory_cp",
-						"laboratory_city", "laboratory_country",
+		model = UserInfo
+		fields = ("firstname", "lastname", 
+						"laboratory", "city_cp",
+						"city_name", "country",
 						"position", "motivation")
 		
-class MembershipInfoEmailForm( Form ) :
+class UserInfoEmailForm( Form ) :
 	email = EmailField(required=True)
 
 	def clean_email( self ) :
 		data = self.cleaned_data["email"]
 		try :
-			info = MembershipInfo.objects.get(email=data)
-		except MembershipInfo.DoesNotExist :
+			info = UserInfo.objects.get(email=data)
+		except UserInfo.DoesNotExist :
 			raise ValidationError(u"E-mail inconnu")
 		return info

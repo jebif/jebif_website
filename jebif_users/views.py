@@ -25,18 +25,26 @@ from .forms import *
 
 
 class RegisterView(View):
-    def get(self, request):
-        form = UserRegisterForm()
-        return render(request, 'jebif_users/register.html', {'form': form})
+	def get(self, request):
+		user_form = UserRegisterForm()
+		info_form = UserInfoForm()
+		return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
 
-    def post(self, request):
-        form = UserRegisterForm(request.POST)
+	def post(self, request):
+		user_form = UserRegisterForm(request.POST)
+		info_form = UserInfoForm(request.POST)
 
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        else:
-            return render(request, 'jebif_users/register.html', {'form': form})
+		if user_form.is_valid() and info_form.is_valid():
+			#creation of User
+			user = user_form.save()
+			#creation of UserInfo
+			user_info = info_form.save(commit=False)
+			user_info.user = user
+			user_info.email = user.email
+			user_info.save()
+			return redirect('home')
+		else:
+			return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
 
 def logout(request):
     if request.method == 'POST':
@@ -52,7 +60,7 @@ def login(request):
         return render(request, 'jebif_users/login.html')
     
 
-def subscription( request ) :
+"""def subscription( request ) :
 	if request.method == 'POST' :
 		form = MembershipInfoForm(request.POST)
 		if form.is_valid() :
@@ -60,10 +68,10 @@ def subscription( request ) :
 			admin_url = f"http://jebif.fr{reverse('admin_subscription')}"
 	
 			msg_subj = "Demande d'adhésion"
-			msg_txt = f"""Bonjour,
-            Une demande d'adhésion vient d'être postée sur le site. Pour la modérer :
-            {admin_url}
-            """
+			msg_txt = f"""#Bonjour,
+            #Une demande d'adhésion vient d'être postée sur le site. Pour la modérer :
+            #{admin_url}
+"""
 			membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
 			
 			send_mail(
@@ -78,12 +86,12 @@ def subscription( request ) :
 	else :
 		form = MembershipInfoForm()
 
-	return render(request, "jebif_users/subscription.html", {"form": form})
+	return render(request, "jebif_users/subscription.html", {"form": form})"""
 
 
-@login_required
+"""@login_required
 def subscription_renew( req, info_id ) :
-	info = MembershipInfo.objects.get(id=info_id)
+	info = UserInfo.objects.get(id=info_id)
 
 	if info.user != req.user :
 		path = quote(req.get_full_path())
@@ -103,7 +111,7 @@ def subscription_renew( req, info_id ) :
 		form = MembershipInfoForm(req.POST, instance=info)
 		if form.is_valid() :
 			form.save()
-			m = Membership(info=info)
+			m = User(info=info)
 			if membership.has_expired() :
 				m.init_date(today)
 				info.inscription_date = today
@@ -118,11 +126,11 @@ def subscription_renew( req, info_id ) :
 		form = MembershipInfoForm(instance=info)
 
 	return render(req, "jebif_users/subscription_renew.html", 
-		{"form": form, "membership": membership, "today": today})
+		{"form": form, "membership": membership, "today": today})"""
 
-@login_required
+"""@login_required
 def subscription_update( req, info_id ) :
-	info = MembershipInfo.objects.get(id=info_id)
+	info = UserInfo.objects.get(id=info_id)
 	if info.user != req.user :
 		path = quote(req.get_full_path())
 		from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -152,16 +160,16 @@ def subscription_update( req, info_id ) :
 		form = MembershipInfoForm(instance=info)
 
 	return render(req, "jebif_users/subscription_update.html", 
-		{"form": form, "membership": membership})
+		{"form": form, "membership": membership})"""
 
 
-@login_required
+"""@login_required
 def subscription_self_update( req ) :
-	info = MembershipInfo.objects.get(user=req.user)
-	return subscription_update(req, info.id)
+	info = UserInfo.objects.get(user=req.user)
+	return subscription_update(req, info.id)"""
 
 
-def subscription_preupdate( req ) :
+"""def subscription_preupdate( req ) :
 	if req.method == "POST" :
 		form = MembershipInfoEmailForm(req.POST)
 		if form.is_valid() :
@@ -171,22 +179,22 @@ def subscription_preupdate( req ) :
 			msg_to = [info.email]
 			msg_subj = u"Ton adhésion à JeBiF"
 			msg_txt = u"""
-Bonjour %(firstname)s,
+#Bonjour %(firstname)s,
 
-Tu peux modifier ton adhésion à l'association JeBiF en te rendant sur
-	%(url_update)s
-avec ton identifiant '%(login)s'%(passwd_setup)s.
+#Tu peux modifier ton adhésion à l'association JeBiF en te rendant sur
+#	%(url_update)s
+#avec ton identifiant '%(login)s'%(passwd_setup)s.
 
-À bientôt,
-L’équipe JeBiF (RSG-France)
-		""" % data
+#À bientôt,
+#L’équipe JeBiF (RSG-France)
+""" % data
 			send_mail(msg_subj, msg_txt, msg_from, msg_to)
 			return render(req, "jebif_users/subscription_preupdated.html",
 					{"email" : info.email})
 	else :
 		form = MembershipInfoEmailForm()
 	return render(req, "jebif_users/subscription_preupdate.html", {"form": form})
-
+"""
 
 def is_admin() :
 	def validate( u ) :
@@ -195,13 +203,14 @@ def is_admin() :
 
 @is_admin()
 def admin_subscription( request ) :
-	infos = MembershipInfo.objects.filter(active=False, deleted=False, membership=None)
+	infos = UserInfo.objects.filter(is_active=False, is_deleted=False, membership=None)
 	return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
 
+"""
 @is_admin()
 def admin_subscription_accept( request, info_id ) :
 	with atomic() :
-		info = MembershipInfo.objects.get(id=info_id)
+		info = UserInfo.objects.get(id=info_id)
 		info.active = True
 		info.inscription_date = datetime.date.today()
 		m = Membership(info=info)
@@ -213,18 +222,18 @@ def admin_subscription_accept( request, info_id ) :
 	msg_to = [info.email]
 	msg_subj = "Bienvenue dans l'association JeBiF"
 	msg_txt = f"""
-Bonjour {info.firstname},
+#Bonjour {info.firstname},
 
-Nous avons bien pris en compte ton adhésion à l’association JeBiF. N’hésite pas à nous contacter si tu as des questions, des commentaires, des idées, etc…
+#Nous avons bien pris en compte ton adhésion à l’association JeBiF. N’hésite pas à nous contacter si tu as des questions, des commentaires, des idées, etc…
 
-Tu connais sans doute déjà notre site internet http://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
-http://www.iscbsc.org/rsg/rsg-france
+#Tu connais sans doute déjà notre site internet http://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
+#http://www.iscbsc.org/rsg/rsg-france
 
-Tu vas être inscrit à la liste de discussion des membres de l’association. Tu pourras y consulter les archives si tu le souhaites.
-http://lists.jebif.fr/mailman/listinfo/membres
+#Tu vas être inscrit à la liste de discussion des membres de l’association. Tu pourras y consulter les archives si tu le souhaites.
+#http://lists.jebif.fr/mailman/listinfo/membres
 
-À bientôt,
-L’équipe JeBiF (RSG-France)
+#À bientôt,
+#L’équipe JeBiF (RSG-France)
 """
 	send_mail(msg_subj, msg_txt, msg_from, msg_to)
 
@@ -233,8 +242,8 @@ L’équipe JeBiF (RSG-France)
 
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
-	info = get_object_or_404(MembershipInfo, id=info_id)
-	info.deleted = True
+	info = get_object_or_404(UserInfo, id=info_id)
+	info.is_deleted = True
 	info.save()
 	return HttpResponseRedirect("../../")
 
@@ -250,7 +259,7 @@ def admin_export_csv( request ) :
 		'Laboratoire', 'Ville', 'Pays', 'Poste actuel',
 		'Motivation', 'Date inscription'])
 
-	infos = MembershipInfo.objects.filter(active=True).extra(select={'ord':'lower(lastname)'}).order_by('ord')
+	infos = UserInfo.objects.filter(active=True).extra(select={'ord':'lower(lastname)'}).order_by('ord')
 	e = lambda s : s.encode(charset)
 	for i in infos :
 		writer.writerow(map(e, [i.lastname, i.firstname, 
@@ -260,3 +269,4 @@ def admin_export_csv( request ) :
 			i.inscription_date.isoformat()]))
 
 	return response
+"""

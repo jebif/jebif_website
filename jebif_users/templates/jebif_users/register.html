@@ -10,7 +10,8 @@
             </h1>
             <form method="POST">
                 {% csrf_token %}
-                {{ form | crispy }}
+                {{ user_form | crispy }}
+                {{ info_form | crispy }}
                 <button class="btn btn-secondary" type="submit">
                     Enregistrement
                 </button>
