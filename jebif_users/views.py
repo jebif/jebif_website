@@ -2,6 +2,7 @@
 from django.views import View
 #from .forms import UserRegisterForm
 from django.contrib.auth.views import LogoutView, LoginView
+from django.contrib.auth.decorators import login_required
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -15,6 +16,8 @@ from urllib.parse import quote
 
 from django.urls import reverse
 
+from django.conf import settings
+
 
 import csv
 import datetime
@@ -22,9 +25,47 @@ import datetime
 from .models import *
 from .forms import *
 
+def ask_membership():
+    # Function to automatically send a mail to check the membership (new and renew)
+	msg_subj = "Demande d'adhésion"
+	#admin_url = f"http://jebif.fr{reverse('admin_subscription')}" #NEED TO CHANGE
+	admin_url = f"http://jebif.fr/admin/auth/user/" 
+
+	msg_txt = f"""Bonjour,
+			Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
+			{admin_url}"""
+	membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
+			
+	send_mail(
+        settings.EMAIL_SUBJECT_PREFIX + msg_subj,
+        msg_txt,
+        settings.SERVER_EMAIL,          
+        [a[1] for a in membership_managers],
+        fail_silently=True
+        )
+
+def validate_membership( user ):
+	# Funtion to automatically send a mail when a membership is validated
+	username = user.username
+	msg_to = user.email
+	msg_from = "NO-REPLY@jebif.fr"
+	msg_subj = u"Ton adhésion à JeBiF"
+	msg_txt = u"""
+Bonjour {username},
+
+Tu peux modifier ton adhésion à l'association JeBiF en te rendant sur
+le site de JeBiF, dans ta page Profile.
+
+À bientôt,
+L’équipe JeBiF (RSG-France)
+"""
+	send_mail(msg_subj, msg_txt, msg_from, msg_to)
+
+	
 
 
 class RegisterView(View):
+	#View to create a new User
 	def get(self, request):
 		user_form = UserRegisterForm()
 		info_form = UserInfoForm()
@@ -42,6 +83,8 @@ class RegisterView(View):
 			user_info.user = user
 			user_info.email = user.email
 			user_info.save()
+			#if (user_info.want_member == True) and (settings.DEBUG == False):
+			#	ask_membership()
 			return redirect('home')
 		else:
 			return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
@@ -58,7 +101,49 @@ def login(request):
         return LoginView.as_view(next_page='home')(request)
     else:
         return render(request, 'jebif_users/login.html')
+	
+
+@login_required
+def profile_view(request):
+	#Function for the profile page, to modify info
+	user = request.user
+	user_info = request.user.info  # get UserInfo linked to User
+	today = datetime.date.today()
+	remaining_time = (user_info.end_membership - today).days
+	show_button_membership = user_info.end_membership and (remaining_time <= 30) and (user_info.is_member == False) and (user_info.want_member == False)
+	
+
+	if request.method == "POST":
+		#user_form = UserRegisterForm(request.POST, instance=user)	# MAYBE CHANGE FORM, had a part to confirm old password
+		user_form = UserModificationForm(request.POST, instance=request.user, user=request.user)
+		info_form = UserInfoForm(request.POST, instance=user_info)
+		if info_form.is_valid() and user_form.is_valid():
+			user = user_form.save()
+			user_info = info_form.save(commit=False)
+			if user.email != user_info.email:
+				user_info.email = user.email
+			info_form.save()
+			#if (user_info.is_member == False) and (user_info.want_member == True) and (settings.DEBUG == False):
+			#	ask_membership()
+			return redirect('profile')
+	else:
+		user_form = UserModificationForm(instance=user)		#retrieve the known info
+		info_form = UserInfoForm(instance=user_info) 
+
+	return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
     
+
+@login_required
+def request_membership(request):
+	#Function for user to request the membership
+	user_info = request.user.info 
+	if request.method == "POST":
+		user_info.want_member = True
+		user_info.save()
+		if settings.DEBUG == False:
+			ask_membership() #function to send a mail to admin
+	return redirect('profile')
+      
 
 """def subscription( request ) :
 	if request.method == 'POST' :

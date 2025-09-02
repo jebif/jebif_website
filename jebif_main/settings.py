@@ -195,7 +195,7 @@ MEDIA_ROOT = Path(str(BASE_DIR) + '/media')
 MEDIA_URL = '/' + str(ROOT_URL) + 'media/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Dossier contenant vos fichiers statiques
+    os.path.join(BASE_DIR, 'static'),  # Directory with static files 
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production

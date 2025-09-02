@@ -39,6 +39,7 @@ class UserInfo( models.Model ) :
 	inscription_date = models.DateField(default=datetime.date.today)
 	#is_active = models.BooleanField(default=False) #changed for is_member, was doublon with is_active from user
 	is_member = models.BooleanField(default=False)
+	want_member = models.BooleanField("L'utilisateur souhaite devenir adhérent",default=False)
 	is_deleted = models.BooleanField(default=False) 
 	begin_membership = models.DateField(default=datetime.date.today)
 	end_membership = models.DateField(default=default_end_membership)
@@ -52,54 +53,6 @@ class UserInfo( models.Model ) :
 		except IndexError :
 			print(f"No membership for {self} !")
 			raise
-
-	"""@atomic	# NOT NEEDED ANYMORE?
-	def make_user( self ) :
-		if self.user is not None :
-			return None
-		# 1. try to find a User matching email #not anymore, email field removed
-		matching = User.objects.filter(info=self, is_member=True)	#What about inactive user?
-		if matching :
-			self.user = matching[0]
-			if len(matching) > 1 :
-				matching2 = matching.filter(is_staff=False)
-				if matching2 :
-					self.user = matching2[0]
-			self.save()
-			return None
-		else :
-			passwd = User.objects.make_random_password(8)
-			base_login = slugify(self.firstname)[0] + \
-							slugify(self.lastname)[:7]
-			login = base_login
-			salt = 2
-			created = False	#Useless?
-			while User.objects.filter(username=login).exists() :
-				login = base_login + "%d" % salt
-				salt += 1
-			self.user = User.objects.create_user(login, self.email, passwd)
-			self.save()
-			return passwd"""
-
-
-	"""def get_contact_data( self ) :
-		def ensure_ROOT( url ) :
-			if url[1:].startswith(settings.ROOT_URL) :
-				return url
-			else :
-				return f"/{settings.ROOT_URL}{url[1:]}"
-		from views import subscription_renew, subscription_update
-		url_renew = ensure_ROOT(reverse(subscription_renew, kwargs={"info_id": self.id}))
-		url_update = ensure_ROOT(reverse(subscription_update, kwargs={"info_id": self.id}))
-		new_passwd = self.make_user()
-		return {
-			"firstname" : self.firstname,
-			"url_renew" : f"{settings.HTTP_DOMAIN}{url_renew}",
-			"url_update" : f"{settings.HTTP_DOMAIN}{url_update}",
-			"login" : self.user.username,
-			"passwd_setup" : " et ton mot de passe '%s'" % new_passwd if new_passwd is not None 
-								else ""
-		}"""
 
 	class Meta :
 		verbose_name = "UserInfo"
@@ -130,6 +83,78 @@ class UserInfo( models.Model ) :
 		return cls.objects.filter(info__active=True,
 					begin_membership__lte=today, end_membership__gt=today)
 	
+	def activate_membership(self):
+		# Function to change automatically the fields related to the membership, to activate it
+		try:
+			if (self.is_member == False) and (self.want_member == True):
+				self.is_member = True
+				self.want_member == False
+				self.init_date(datetime.date.today())	#Need to check if works properly
+		except:
+			print(f"{self} doesn't want to be a member or is already one !")
+			raise
+
+	@atomic	# NOT NEEDED ANYMORE?
+	def make_user( self ) :
+		if self.user is not None :
+			return None
+		# 1. try to find a User matching email
+		matching = User.objects.filter(email=self.email, is_active=True)
+		if matching :
+			self.user = matching[0]
+			if len(matching) > 1 :
+				matching2 = matching.filter(is_staff=False)
+				if matching2 :
+					self.user = matching2[0]
+			self.save()
+			return None
+		else :
+			passwd = User.objects.make_random_password(8)
+			base_login = slugify(self.firstname)[0] + \
+							slugify(self.lastname)[:7]
+			login = base_login
+			salt = 2
+			created = False	#Useless?
+			while User.objects.filter(username=login).exists() :
+				login = base_login + "%d" % salt
+				salt += 1
+			self.user = User.objects.create_user(login, self.email, passwd)
+			self.save()
+			UserInfo.objects.create(
+				user=self.user,
+				email=self.email,
+				firstname=self.firstname or "",
+				lastname=self.lastname or "",
+				laboratory = self.laboratory or "",
+				city_name = self.city_name or "",
+				city_cp = self.city_cp or "",
+				country = self.country or "",
+				position = self.position or "",
+				begin_membership=datetime.date.today(),
+				end_membership=datetime.date.today() + datetime.timedelta(days=365),
+    		)
+
+			return passwd
+
+
+	def get_contact_data( self ) :
+		"""def ensure_ROOT( url ) :
+			if url[1:].startswith(settings.ROOT_URL) :
+				return url
+			else :
+				return f"/{settings.ROOT_URL}{url[1:]}"
+		from views import subscription_renew, subscription_update 							#NOT NEEDED ANYMORE?
+		url_renew = ensure_ROOT(reverse(subscription_renew, kwargs={"info_id": self.id}))	#NOT NEEDED ANYMORE?
+		url_update = ensure_ROOT(reverse(subscription_update, kwargs={"info_id": self.id}))#NOT NEEDED ANYMORE?"""
+		new_passwd = self.make_user()
+		return {
+			"firstname" : self.firstname,
+			#"url_renew" : f"{settings.HTTP_DOMAIN}{url_renew}",			#NOT NEEDED ANYMORE?
+			#"url_update" : f"{settings.HTTP_DOMAIN}{url_update}",			#NOT NEEDED ANYMORE?
+			"login" : self.user.username,
+			"passwd_setup" : " et ton mot de passe '%s'" % new_passwd if new_passwd is not None 
+								else ""
+		}
 
 """# ---- Automatic creation of UserInfo when a User is created ---- #shouldn't be required since both forms are done at the same time
 @receiver(post_save, sender=User)
