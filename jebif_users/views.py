@@ -1,6 +1,7 @@
 #from django.shortcuts import render, redirect
 from django.views import View
 #from .forms import UserRegisterForm
+#from django.contrib.auth.models import is_authenticated
 from django.contrib.auth.views import LogoutView, LoginView
 from django.contrib.auth.decorators import login_required
 
@@ -114,7 +115,6 @@ def profile_view(request):
 	
 
 	if request.method == "POST":
-		#user_form = UserRegisterForm(request.POST, instance=user)	# MAYBE CHANGE FORM, had a part to confirm old password
 		user_form = UserModificationForm(request.POST, instance=request.user, user=request.user)
 		info_form = UserInfoForm(request.POST, instance=user_info)
 		if info_form.is_valid() and user_form.is_valid():
@@ -123,8 +123,6 @@ def profile_view(request):
 			if user.email != user_info.email:
 				user_info.email = user.email
 			info_form.save()
-			#if (user_info.is_member == False) and (user_info.want_member == True) and (settings.DEBUG == False):
-			#	ask_membership()
 			return redirect('profile')
 	else:
 		user_form = UserModificationForm(instance=user)		#retrieve the known info
@@ -283,24 +281,23 @@ def subscription_self_update( req ) :
 
 def is_admin() :
 	def validate( u ) :
-		return u.is_authenticated() and u.is_staff
+		return u.is_authenticated and u.is_staff
 	return user_passes_test(validate)
 
 @is_admin()
 def admin_subscription( request ) :
-	infos = UserInfo.objects.filter(is_active=False, is_deleted=False, membership=None)
+	infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True)
 	return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
 
-"""
+
 @is_admin()
 def admin_subscription_accept( request, info_id ) :
 	with atomic() :
 		info = UserInfo.objects.get(id=info_id)
-		info.active = True
+		info.is_member = True
+		info.want_member = False
 		info.inscription_date = datetime.date.today()
-		m = Membership(info=info)
-		m.init_date(info.inscription_date)
-		m.save()
+		info.init_date(info.inscription_date)
 		info.save()
 
 	msg_from = "NO-REPLY@jebif.fr"
@@ -320,7 +317,8 @@ def admin_subscription_accept( request, info_id ) :
 #À bientôt,
 #L’équipe JeBiF (RSG-France)
 """
-	send_mail(msg_subj, msg_txt, msg_from, msg_to)
+	if settings.DEBUG == False:
+		send_mail(msg_subj, msg_txt, msg_from, msg_to)
 
 	return HttpResponseRedirect("../../")
 
@@ -332,7 +330,7 @@ def admin_subscription_reject( request, info_id ) :
 	info.save()
 	return HttpResponseRedirect("../../")
 
-
+"""
 @is_admin()
 def admin_export_csv( request ) :
 	charset = 'utf-8'

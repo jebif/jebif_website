@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib import messages
+from django.utils.translation import ngettext
+
 from .models import UserInfo #, MembershipInfoEmailChange
+
 
 class UserInline( admin.StackedInline ) :
 	model = UserInfo
@@ -44,12 +48,31 @@ class IsDeletedFilter(admin.SimpleListFilter):
 			return queryset.filter(userinfo__is_deleted=False)
 		return queryset
 
+@admin.action(description="Renew or Grant Membership")
+def make_member(self, request, queryset):
+	count_user = 0
+	for obj in queryset:
+		obj.info.re_new_membership()
+		count_user += 1
+	self.message_user(
+            request,
+            ngettext(
+                "%d utilisateur a été marqué comme adhérent avec succés.",
+                "%d utilisateurs ont été marqué comme adhérents avec succés.",
+                count_user,
+            )
+            % count_user,
+            messages.SUCCESS,
+        )
 
 class UserInfoAdmin(BaseUserAdmin):
 	inlines = [UserInline]
 	list_display = ('username', 'firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
 	list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
 	search_fields = ('firstname', 'lastname', 'email', 'user__username')
+	actions = [make_member] #not usefull if not defined outside and before?
+
+	
 
 	#Get each field of the UserInfo to display
 	def firstname(self, obj):
@@ -86,6 +109,8 @@ class UserInfoAdmin(BaseUserAdmin):
 	def end_membership(self, obj):
 		return obj.info.end_membership
 	
+	
+
 
 
 # Re-register UserInfoAdmin

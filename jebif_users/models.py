@@ -7,6 +7,7 @@ from django.template.defaultfilters import slugify
 from django.db.transaction import atomic
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.mail import send_mail
 
 User = get_user_model() 
 
@@ -57,7 +58,8 @@ class UserInfo( models.Model ) :
 	class Meta :
 		verbose_name = "UserInfo"
 
-	def get_end_membership(base=None) :
+	def get_end_membership(self,base=None) :
+		# Function to return the date of the end of the membership
 		d = base
 		if d is None :
 			d = datetime.date.today()
@@ -68,8 +70,9 @@ class UserInfo( models.Model ) :
 		return end - datetime.timedelta(1)
 
 	def init_date( self, begin_membership ) :
+		# Function to create or change the dates for the beginning and end of the membership
 		self.begin_membership = begin_membership
-		self.end_membership = self.get_end_membership(self.begin_membership)
+		self.end_membership = self.get_end_membership()
 	
 	def has_expired( self ) :
 		return self.end_membership < datetime.date.today()
@@ -82,9 +85,10 @@ class UserInfo( models.Model ) :
 		today = datetime.date.today()	#added the missing ()
 		return cls.objects.filter(info__active=True,
 					begin_membership__lte=today, end_membership__gt=today)
+
 	
-	def activate_membership(self):
-		# Function to change automatically the fields related to the membership, to activate it
+	"""def activate_membership(self):
+		# Function to change automatically the fields related to the membership, to activate it	#FUNCTION NOT TESTED
 		try:
 			if (self.is_member == False) and (self.want_member == True):
 				self.is_member = True
@@ -92,7 +96,31 @@ class UserInfo( models.Model ) :
 				self.init_date(datetime.date.today())	#Need to check if works properly
 		except:
 			print(f"{self} doesn't want to be a member or is already one !")
-			raise
+			raise"""
+
+
+	def re_new_membership(self):
+		# Function to change automatically the fields related to the membership
+		self.is_member = True	# change if not member, doesn't if already is
+		self.init_date(datetime.date.today())	#change begin and end date of membership
+		self.want_member = False
+		self.save()
+		if settings.DEBUG == False:
+			firstname = self.firstname
+			msg_subj = u"Ton adhésion à JeBiF"
+			msg_txt = f"""
+Bonjour {firstname},
+
+Ton adhésion à l'association JeBiF vient d'être validée. Tu peux la modifier en te rendant sur
+le site de JeBiF, dans ta page Profile.
+
+À bientôt,
+L’équipe JeBiF (RSG-France)
+"""
+			msg_from = "NO-REPLY@jebif.fr"
+			msg_to = self.email
+			send_mail(msg_subj, msg_txt, msg_from, msg_to)
+
 
 	@atomic	# NOT NEEDED ANYMORE?
 	def make_user( self ) :

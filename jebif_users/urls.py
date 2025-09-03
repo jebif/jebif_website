@@ -21,8 +21,8 @@ urlpatterns = [
     #path('subscription/me/update/', views.subscription_self_update, name="subscription_self_update"),
     #path('subscription/update/', views.subscription_preupdate, name="subscription_preupdate"),
     #path('admin/export/csv/', views.admin_export_csv, name="admin_export_csv"),
-    #path('admin/subscription/', views.admin_subscription, name="admin_subscription"),
-    #path('admin/subscription/accept/<int:info_id>/', views.admin_subscription_accept, name="admin_subscription_accept"),
-    #path('admin/subscription/reject/<int:info_id>/', views.admin_subscription_reject, name="admin_subscription_reject"),
+    path('admin/subscription/', views.admin_subscription, name="admin_subscription"),
+    path('admin/subscription/accept/<int:info_id>/', views.admin_subscription_accept, name="admin_subscription_accept"),
+    path('admin/subscription/reject/<int:info_id>/', views.admin_subscription_reject, name="admin_subscription_reject"),
 
 ]
