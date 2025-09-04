@@ -26,6 +26,11 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
             </form>
+
+        {% elif request.user.info.want_member %}
+            <p><h4>Adhésion</h4></p>
+            <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
+
         {% endif %}
     </div>
 {% endblock content %}

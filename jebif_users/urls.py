@@ -3,7 +3,7 @@ from .views import RegisterView
 from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import profile_view, request_membership
+from .views import profile_view, request_membership, admin_home_view, button_admin
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
@@ -20,7 +20,9 @@ urlpatterns = [
     #path('subscription/<int:info_id>/update/', views.subscription_update, name="subscription_update"),
     #path('subscription/me/update/', views.subscription_self_update, name="subscription_self_update"),
     #path('subscription/update/', views.subscription_preupdate, name="subscription_preupdate"),
-    #path('admin/export/csv/', views.admin_export_csv, name="admin_export_csv"),
+    path('admin/export/csv/', views.admin_export_csv, name="admin_export_csv"),
+    path('button_admin/', button_admin, name='button_admin'),
+    path('admin_home/', admin_home_view, name="admin_home"),
     path('admin/subscription/', views.admin_subscription, name="admin_subscription"),
     path('admin/subscription/accept/<int:info_id>/', views.admin_subscription_accept, name="admin_subscription_accept"),
     path('admin/subscription/reject/<int:info_id>/', views.admin_subscription_reject, name="admin_subscription_reject"),

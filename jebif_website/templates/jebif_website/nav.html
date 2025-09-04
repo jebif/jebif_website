@@ -34,7 +34,11 @@
 
                 <span class="navbar-nav">
                     {% if request.user.is_authenticated %}
-                        {% include 'jebif_users/button_profile.html'%}
+                        {% if request.user.is_staff %}
+                            {% include 'jebif_users/button_admin.html'%}
+                        {% else %}
+                            {% include 'jebif_users/button_profile.html'%}
+                        {% endif %}
                         {% include 'jebif_users/button_logout.html'%}
                     {% else %}
                         <li class="nav-item">

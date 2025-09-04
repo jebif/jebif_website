@@ -38,7 +38,6 @@ class UserInfo( models.Model ) :
 	motivation = models.TextField("Motivation pour adhérer", blank=True)
 
 	inscription_date = models.DateField(default=datetime.date.today)
-	#is_active = models.BooleanField(default=False) #changed for is_member, was doublon with is_active from user
 	is_member = models.BooleanField(default=False)
 	want_member = models.BooleanField("L'utilisateur souhaite devenir adhérent",default=False)
 	is_deleted = models.BooleanField(default=False) 
@@ -85,18 +84,6 @@ class UserInfo( models.Model ) :
 		today = datetime.date.today()	#added the missing ()
 		return cls.objects.filter(info__active=True,
 					begin_membership__lte=today, end_membership__gt=today)
-
-	
-	"""def activate_membership(self):
-		# Function to change automatically the fields related to the membership, to activate it	#FUNCTION NOT TESTED
-		try:
-			if (self.is_member == False) and (self.want_member == True):
-				self.is_member = True
-				self.want_member == False
-				self.init_date(datetime.date.today())	#Need to check if works properly
-		except:
-			print(f"{self} doesn't want to be a member or is already one !")
-			raise"""
 
 
 	def re_new_membership(self):

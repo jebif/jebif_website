@@ -102,7 +102,7 @@ def login(request):
         return LoginView.as_view(next_page='home')(request)
     else:
         return render(request, 'jebif_users/login.html')
-	
+
 
 @login_required
 def profile_view(request):
@@ -113,7 +113,6 @@ def profile_view(request):
 	remaining_time = (user_info.end_membership - today).days
 	show_button_membership = user_info.end_membership and (remaining_time <= 30) and (user_info.is_member == False) and (user_info.want_member == False)
 	
-
 	if request.method == "POST":
 		user_form = UserModificationForm(request.POST, instance=request.user, user=request.user)
 		info_form = UserInfoForm(request.POST, instance=user_info)
@@ -285,6 +284,17 @@ def is_admin() :
 	return user_passes_test(validate)
 
 @is_admin()
+def button_admin(request):
+	if request.method == 'POST':
+		return redirect('admin_home')
+	else:
+		return render(request, 'jebif_users/button_admin.html')
+	
+@is_admin()
+def admin_home_view(request):
+    return render(request, 'jebif_users/admin_home.html')
+
+@is_admin()
 def admin_subscription( request ) :
 	infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True)
 	return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
@@ -330,26 +340,25 @@ def admin_subscription_reject( request, info_id ) :
 	info.save()
 	return HttpResponseRedirect("../../")
 
-"""
+
 @is_admin()
 def admin_export_csv( request ) :
 	charset = 'utf-8'
-	response = HttpResponse(mimetype='text/csv')
+	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
 	response['Content-Disposition'] = 'attachment; filename=membres_jebif.csv'
 
-	writer = csv.writer(response)
+	writer = csv.writer(response) # add (,delimiter=';') to change the delimiter
 	writer.writerow(['Nom', 'Prénom', 'E-mail',
 		'Laboratoire', 'Ville', 'Pays', 'Poste actuel',
 		'Motivation', 'Date inscription'])
 
-	infos = UserInfo.objects.filter(active=True).extra(select={'ord':'lower(lastname)'}).order_by('ord')
-	e = lambda s : s.encode(charset)
+	infos = UserInfo.objects.filter(is_member=True).extra(select={'ord':'lower(lastname)'}).order_by('ord')
+
 	for i in infos :
-		writer.writerow(map(e, [i.lastname, i.firstname, 
-			i.email, i.laboratory_name, i.laboratory_city,
-			i.laboratory_country, i.position,
+		writer.writerow([i.lastname, i.firstname, 
+			i.email, i.laboratory, i.city_name,
+			i.country, i.position,
 			i.motivation.replace("\r\n", " -- "),
-			i.inscription_date.isoformat()]))
+			i.inscription_date.isoformat()])
 
 	return response
-"""
