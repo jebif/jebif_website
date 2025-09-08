@@ -181,7 +181,7 @@ def create_user_info(sender, instance, created, **kwargs):
 def save_user_info(sender, instance, **kwargs):
     instance.info.save()"""
 
-
+# FROM OLD REPO, NOT MODIFIED
 class DatabaseInfo( models.Model ) : 
 	""" 
 	Version de la structure de la base de données.
