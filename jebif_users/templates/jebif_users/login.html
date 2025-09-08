@@ -1,0 +1,26 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-11 col-md-4 mx-auto mt-5">
+            <h1>
+                Connexion
+            </h1>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form | crispy }}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <button class="btn btn-secondary" type="submit">
+                    Connexion
+                </button>
+            </form>
+            <div class="pt-3">
+                <small class="text-muted">
+                    Besoin d'un compte? <a href="{% url 'register' %}" class="ml-2">Création</a>
+                </small>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,18 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <p><a href="{% url 'profile' %}"><h4>Profil de l'utilisateur</h4></a></p>
+
+    <p><a href="{% url 'admin_subscription' %}"><h4>Page de validation des adhésion</h4></a></p>
+
+    <div>
+        <form action="{% url 'admin_export_csv' %}" method="GET" class="form-group my-3 col-6">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Export de la liste des membres en csv</button>
+        </form>
+    </div>
+
+{% endblock content %}

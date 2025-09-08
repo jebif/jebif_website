@@ -1,0 +1,32 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+	{% autoescape on %}
+		{% if infos %}
+			<h1>Demandes d'adhésion</h1>
+			<table border="1">
+				<tr>
+					<th>Prénom</th><th>Nom</th><th>E-mail</th><th>Date d'inscription</th>
+				</tr>
+			{% for info in infos %}
+				<tr>
+					<td>{{ info.firstname }}</td>
+					<td>{{ info.lastname }}</td>
+					<td>{{ info.email }}</td>
+					<td>{{ info.inscription_date }}</td>
+					<td>
+						<a href="accept/{{ info.id }}/">accepter</a> /
+						<a href="reject/{{ info.id }}/">supprimer</a>
+					</td>
+				</tr>
+			{% endfor %}
+			</table>
+
+		{% else %}
+			Aucune demande à modérer&nbsp;!
+		{% endif %}
+	{% endautoescape %}
+
+{% endblock content %}
