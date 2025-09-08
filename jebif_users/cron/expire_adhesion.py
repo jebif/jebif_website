@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+# -*- coding: utf-8
+
+import datetime
+
+ALERT_1 = datetime.timedelta(30)
+ALERT_2 = datetime.timedelta(2)
+
+import subprocess
+
+from django.conf import settings
+from django.core.mail import send_mail
+
+from jebif_users.models import *
+
+expired = []
+expire = []
+
+for info in UserInfo.objects.filter(is_member=True) :
+	m = info.latter_membership() # Note: return a User, not a UserInfo
+	if m.info.has_expired() :
+		expired.append(m)
+	elif m.info.expire_delta() in [ALERT_1, ALERT_2] :
+		expire.append(m)
+
+for m in expired :
+	data = m.info.get_contact_data()
+	try :
+		subprocess.call(["/usr/lib/mailman/bin/remove_members", "Membres", m.info.email])   #need to check if correct link
+	except :
+		pass
+	m.info.is_member = False
+	m.info.save()
+
+	msg_from = "NO-REPLY@jebif.fr"
+	msg_to = [m.info.email]
+	msg_subj = u"Expiration de ton adhésion à JeBiF"
+	msg_txt = u"""
+Bonjour %(firstname)s,
+
+Ton adhésion à l'association JeBiF *vient de se terminer*.
+Tu peux la renouveller pour un an, gratuitement, en te rendant sur ton profil
+avec ton identifiant '%(login)s'%(passwd_setup)s.
+
+En espérant te revoir très bientôt,
+L’équipe du RSG-France (JeBiF)
+""" % data
+	if settings.DEBUG == False:
+	    send_mail(msg_subj, msg_txt, msg_from, msg_to)
+
+for m in expire :
+	data = m.info.get_contact_data()
+	data["expire_date"] = m.info.end_membership.strftime(settings.DATE_INPUT_FORMAT)
+
+	msg_from = "NO-REPLY@jebif.fr"
+	msg_to = [m.info.email]
+	msg_subj = u"Expiration de ton adhésion à JeBiF"
+	msg_txt = u"""
+Bonjour %(firstname)s,
+
+Ton adhésion à l'association JeBiF se termine le *%(expire_date)s*.
+Tu peux la renouveller pour un an, gratuitement, en te rendant sur ton profil
+avec ton identifiant '%(login)s'%(passwd_setup)s.
+
+À bientôt,
+L’équipe du RSG-France (JeBiF)
+""" % data
+	if settings.DEBUG == False:
+		send_mail(msg_subj, msg_txt, msg_from, msg_to)

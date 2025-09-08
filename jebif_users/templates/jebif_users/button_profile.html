@@ -1,0 +1,6 @@
+<div>
+    <form action="{% url 'profile' %}" method="GET" class="form-group my-3 col-6">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Profil</button>
+    </form>
+</div>

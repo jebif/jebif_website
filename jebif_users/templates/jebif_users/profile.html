@@ -1,0 +1,36 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container my-5">
+        <h2>Mes informations</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <h4>Informations de connexion</h4>
+            {{ user_form|crispy }}
+
+            <h4>Informations personnelles</h4>
+            {{ info_form|crispy }}
+            <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
+        </form>
+        {% if show_button_membership %}
+            <p><h4>Ton adhésion expire bientôt (moins de 30 jours) ou tu n'es pas adhérent.</h4></p>
+            {% if remaining_time %}
+                Temps restant: {{remaining_time}} jour(s).
+            {% else %}
+                Tu n'es pas (ou plus) adhérent.
+            {% endif %}
+            <form method="post" action="{% url 'request_membership' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
+            </form>
+
+        {% elif request.user.info.want_member %}
+            <p><h4>Adhésion</h4></p>
+            <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
+
+        {% endif %}
+    </div>
+{% endblock content %}
