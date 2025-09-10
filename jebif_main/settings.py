@@ -200,3 +200,15 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
+
+#### Configuration for emails
+# Only for development
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
+# Only for prod (whole set, need modifications):
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+#EMAIL_HOST = "smtp.gmail.com" #need changes
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = "tonmail@gmail.com"
+#EMAIL_HOST_PASSWORD = "ton_mot_de_passe_application"
+#DEFAULT_FROM_EMAIL = "admin@jebif.fr"
