@@ -65,15 +65,34 @@ def make_member(self, request, queryset):
             messages.SUCCESS,
         )
 
+
+@admin.action(description="Mark as Deleted Member")
+def admin_mark_deleted(self, request, queryset):
+	count_user = 0
+	for obj in queryset:
+		obj.info.mark_deleted()
+		#obj.is_active = False	#Only if the account should be inaccessible to user
+		#obj.save()
+		count_user += 1
+	self.message_user(
+            request,
+            ngettext(
+                "%d utilisateur a été marqué comme étant deleted avec succés.",
+                "%d utilisateurs ont été marqué comme étant deleted avec succés.",
+                count_user,
+            )
+            % count_user,
+            messages.SUCCESS,
+        )
+
 class UserInfoAdmin(BaseUserAdmin):
 	inlines = [UserInline]
 	list_display = ('username', 'firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
 	list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
 	search_fields = ('firstname', 'lastname', 'email', 'user__username')
-	actions = [make_member] #not usefull if not defined outside and before?
+	actions = [make_member, admin_mark_deleted] #not usefull if not defined outside and before?
 
 	
-
 	#Get each field of the UserInfo to display
 	def firstname(self, obj):
 		return obj.info.firstname
