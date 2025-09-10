@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include ('jebif_users.urls')),
+    path('election/', include('jebif_election.urls')),
     path('', include ('jebif_website.urls')),   # Must be placed last, to avoid issues (will match category/subcategory even if isn't one)
     
 ]
