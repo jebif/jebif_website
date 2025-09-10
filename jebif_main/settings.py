@@ -173,17 +173,18 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 # To redirect after connexion (maybe will be changed)
-LOGIN_REDIRECT_URL = '/website/'
+LOGIN_REDIRECT_URL = '/'
 
 
 #### Settings for old
 ROOT_URL="app/"   
-HTTP_DOMAIN="http://jebif.fr"
+HTTP_DOMAIN="http://jebif.fr"   #OK
 LOGIN_URL = f"/{ROOT_URL}accounts/login/"
 #LOGIN_REDIRECT_URL = f"/{ROOT_URL}membership/subscription/me/update/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
-EMAIL_SUBJECT_PREFIX = "[JeBiF] "
-SERVER_EMAIL="admin@jebif.fr"
+EMAIL_SUBJECT_PREFIX = "[JeBiF] " #OK
+SERVER_EMAIL="admin@jebif.fr"   #OK
+
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -199,3 +200,15 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
+
+#### Configuration for emails
+# Only for development
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
+# Only for prod (whole set, need modifications):
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+#EMAIL_HOST = "smtp.gmail.com" #need changes
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = "tonmail@gmail.com"
+#EMAIL_HOST_PASSWORD = "ton_mot_de_passe_application"
+#DEFAULT_FROM_EMAIL = "admin@jebif.fr"

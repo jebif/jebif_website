@@ -1,0 +1,6 @@
+<div>
+    <form action="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" method="GET" class="form-group my-3 col-6">
+        {% csrf_token %}
+        <button type="submit" class="btn mx-2" style="background-color: #5c85c4; color: white;">Connexion</button>
+    </form>
+</div>

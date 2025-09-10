@@ -108,6 +108,13 @@ L’équipe JeBiF (RSG-France)
 			msg_to = self.email
 			send_mail(msg_subj, msg_txt, msg_from, msg_to)
 
+	def mark_deleted(self):
+		self.is_member = False
+		self.is_deleted = True
+		self.want_member = False
+		self.end_membership = datetime.date.today()
+		self.save()
+
 
 	@atomic	# NOT NEEDED ANYMORE?
 	def make_user( self ) :

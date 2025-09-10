@@ -20,8 +20,19 @@
                         {% load static %}
                         <img src="{% static 'jebif_website/images/jebif_banniere.png' %}" class="img-fluid" style="max-width:100%; height:auto;" alt="jebif_banniere">
                     </div>
-                    {% block content %}
-                    {% endblock %}
+                    <!--Content Part-->
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-8 col-12 mx-md-auto py-md-5">
+                                {% block content %}
+                                {% endblock %}
+                            </div>
+                        <!--Side Part-->
+                            <div class="col-md-4 mx-md-auto py-md-5">
+                                {% include 'jebif_website/side.html' %}
+                            </div>
+                        </div>
+
                 </div>
             </div>
         </div>  

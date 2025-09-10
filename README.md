@@ -4,6 +4,10 @@
 The goal of this repo is to create the structure of the JeBiF website, previously made with WordPress.
 Depending on external circumstances, the others aspects of the website related to the elections will be added.
 
+## Dependencies
+`pip install django-tinymce` for tinymce, used for writing the article in the admin page.
+`pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
+
 ## Structure
 This website is made with 7 categories in mind (L'association,  Evènements, Bioinformatique, Vulgarisation, Liens utiles, Nous rejoindre, and Contact). Each category has differents sub-categories. In addition, there is also a home page (Accueil).
 
@@ -19,5 +23,16 @@ Each User can have access to its infos from the website, using buttons from the 
 In case they aren't logged in, a login button and a Registration button are displayed. Else, it's a Profile button and a Logout Button. 
 The admin(s) have its Profile Button replaced by an Admin Button, with a page  showing links to their own profile or various Admin functions (like validating Membership of Users).
 
+## Elections
+
 ## Miscellaneous
 Made by Alexandre Lerévérend: ask for any question.
+
+### TODO:
+-cron in users is not correct yet, some unknown files are called (need to change links)
+
+-navbar isn't aesthetic yet
+
+-remove unwanted old code (currently commented) when sure it's not needed
+
+-check if emails are sent correctly ( maybe some changes in settings for that too, plus all the methods and functions in users)

@@ -12,7 +12,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
          <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav me-auto align-items-center">
                 {% for category in categories_nav %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" 
@@ -33,21 +33,26 @@
                 {% endfor %}
 
                 <span class="navbar-nav">
-                    {% if request.user.is_authenticated %}
-                        {% if request.user.is_staff %}
-                            {% include 'jebif_users/button_admin.html'%}
+                    <div class="col">
+                        {% if request.user.is_authenticated %}
+                        
+                            {% if request.user.is_staff %}
+                                {% include 'jebif_users/button_admin.html'%}
+                            {% else %}
+                                {% include 'jebif_users/button_profile.html'%}
+                            {% endif %}
+
+                            {% include 'jebif_users/button_logout.html'%}
+
                         {% else %}
-                            {% include 'jebif_users/button_profile.html'%}
+
+                                {% include 'jebif_users/button_login.html'%}
+
+                                {% include 'jebif_users/button_registration.html'%}
+
                         {% endif %}
-                        {% include 'jebif_users/button_logout.html'%}
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Connexion</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="{% url 'register' %}">Enregistrement</a>
-                        </li>
-                    {% endif %}
+                    </div>
+                    
                 </span>
             </ul>
             
