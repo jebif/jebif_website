@@ -29,7 +29,7 @@ class VoteForm( forms.Form ) :                      #INCORRECT FOR NOW
 
         # candidats si applicable
         if election.max_choices > 0:
-            choices = [(c.id, c.label) for c in election.candidate.all()]
+            choices = [(c.id, c.label) for c in election.candidats.all()]
 
             def validate_candidates(value):
                 if len(value) < election.min_choices:
@@ -41,7 +41,7 @@ class VoteForm( forms.Form ) :                      #INCORRECT FOR NOW
                 label=(
                     "Vote C : Renouvellement du Conseil d'Administration - "
                     "\"Voulez-vous que la personne suivante soit élue ?\""
-                    + (f" ({election.max_choices} maximum)" if election.max_choices < election.candidate.count()
+                    + (f" ({election.max_choices} maximum)" if election.max_choices < election.candidats.count()
                        else " (sélectionnez tous les candidats que vous souhaitez voir élus)")
                 ),
                 required=False,
@@ -64,3 +64,34 @@ class VoteForm( forms.Form ) :                      #INCORRECT FOR NOW
         self.fields['passwd'].validators.append(validate_passwd)"""
 
 
+
+class NewVoteForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        election = kwargs.pop("election")
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        CHOIX = [
+            ("OUI", "Oui"),
+            ("NON", "Non"),
+            ("ABS", "S'abstient"),
+        ]
+
+        for candidat in election.candidats.all():
+            #Add steps to check if already voted or not ?
+            #
+            self.fields[f"candidat_{candidat.id}"] = forms.ChoiceField(
+                label=candidat.label,
+                choices=CHOIX,
+                widget=forms.RadioSelect,  
+                required=True
+            )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Vérifier que l’utilisateur a bien les droits
+        if self.user and not self.user.info.is_member:
+            raise forms.ValidationError("Vous ne pouvez pas remplir ce formulaire.")
+
+        return cleaned_data

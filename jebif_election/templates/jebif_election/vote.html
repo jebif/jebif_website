@@ -1,0 +1,29 @@
+{% extends 'jebif_website/base.html'%}
+
+{% block content %}
+
+    <h1>Élection {{ election.label }}</h1>
+    {% if form.errors %}
+        <p class="errornote">Merci de corriger les erreurs ci-dessous.</p>
+    {% endif %}
+
+    {{ election.intro|safe|linebreaks }}
+
+    {% if election.max_choices > 0 %}
+    <h2>Description des candidats</h2>
+    <dl>
+    {% for candidat in election.candidate.all %}
+        <dt>{{ candidat.label|escape }}</dt>
+        <dd>{{ candidat.description|escape|linebreaks }}</dd>
+    {% endfor %}
+    </dl>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Valider mes votes</button>
+    </form>
+    
+
+{% endblock content %}

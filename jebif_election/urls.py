@@ -3,6 +3,11 @@ from django.views.generic import TemplateView
 from jebif_election.views import *
 
 urlpatterns = [
-    #path(),
-    
+    path('election/<int:election_id>/vote/', vote_view, name='vote'),
+    path('election/<int:election_id>/vote_ok/', TemplateView.as_view(template_name="jebif_election/vote_ok.html"), name='vote_ok'),
+    path('election/<int:election_id>/vote_closed/', TemplateView.as_view(template_name="jebif_election/vote_closed.html"), name='vote_closed'),
+    path('list_elections/', list_elections_view, name='list_elections'),
+    #path('<int:election_id>/results/', results),
+	#path('<int:election_id>/mailing/', mailing),
+
 ]

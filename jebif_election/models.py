@@ -7,19 +7,20 @@ import jebif_main.settings as settings
 
 
 class Election( models.Model ) :
-	opened = models.BooleanField(default=False)
-	label = models.CharField("Libellé", max_length=50)
-	max_choices = models.PositiveSmallIntegerField()            #what's the use?
-	min_choices = models.PositiveSmallIntegerField(default=0)   #what's the use?
-	intro = models.TextField("Introduction")
-	#voteA_label = models.CharField("Vote A", max_length=150, blank=True)
-	#voteB_label = models.CharField("Vote B", max_length=150, blank=True)
+    opened = models.BooleanField(default=False)
+    label = models.CharField("Libellé", max_length=50)
+    max_choices = models.PositiveSmallIntegerField()            #what's the use?
+    min_choices = models.PositiveSmallIntegerField(default=0)   #what's the use?
+    intro = models.TextField("Introduction")
+	#voteA_label = models.CharField("Vote A", max_length=150, blank=True)   #keep it or not?
+	#voteB_label = models.CharField("Vote B", max_length=150, blank=True)   #keep it or not?
+    date = models.DateTimeField(default=datetime.date.today())
 	
-	def __str__( self ) :
-		return f"{self.label}"
+    def __str__( self ) :
+        return f"{self.label}"
 	
-	def get_absolute_url( self ) :
-		return f"/{settings.ROOT_URL}/{self.id}/"
+    def get_absolute_url( self ) :
+        return f"/{settings.ROOT_URL}/{self.id}/"
 
 
 class Candidates(models.Model):
