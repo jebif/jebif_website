@@ -66,8 +66,10 @@ class VoteForm( forms.Form ) :                      #INCORRECT FOR NOW
 
 
 class NewVoteForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        election = kwargs.pop("election")
+    #def __init__(self, *args, **kwargs):    
+    #    election = kwargs.pop("election")
+    #    self.user = kwargs.pop("user", None)
+    def __init__(self, *args, userinfo=None, election=None, candidates=None, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
@@ -77,9 +79,10 @@ class NewVoteForm(forms.Form):
             ("ABS", "S'abstient"),
         ]
 
-        for candidat in election.candidats.all():
-            #Add steps to check if already voted or not ?
-            #
+        if candidates is None and election is not None:
+            candidates = election.candidats.all()
+
+        for candidat in candidates:
             self.fields[f"candidat_{candidat.id}"] = forms.ChoiceField(
                 label=candidat.label,
                 choices=CHOIX,

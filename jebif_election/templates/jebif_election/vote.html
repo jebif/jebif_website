@@ -9,15 +9,19 @@
 
     {{ election.intro|safe|linebreaks }}
 
+    <hr class="my-4">
+
     {% if election.max_choices > 0 %}
-    <h2>Description des candidats</h2>
-    <dl>
-    {% for candidat in election.candidate.all %}
-        <dt>{{ candidat.label|escape }}</dt>
-        <dd>{{ candidat.description|escape|linebreaks }}</dd>
-    {% endfor %}
-    </dl>
+        <h2>Description des candidats</h2>
+        <dl>
+        {% for candidat in election.candidats.all %}
+            <dt>{{ candidat.label|escape }}</dt>
+            <dd>{{ candidat.description|escape|linebreaks }}</dd>
+        {% endfor %}
+        </dl>
     {% endif %}
+
+    <hr class="my-4">
 
     <form method="post">
         {% csrf_token %}

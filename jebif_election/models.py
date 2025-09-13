@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.timezone import now
+
 import jebif_users.models as jebif_users
 
 import datetime
@@ -14,7 +16,7 @@ class Election( models.Model ) :
     intro = models.TextField("Introduction")
 	#voteA_label = models.CharField("Vote A", max_length=150, blank=True)   #keep it or not?
 	#voteB_label = models.CharField("Vote B", max_length=150, blank=True)   #keep it or not?
-    date = models.DateTimeField(default=datetime.date.today())
+    date = models.DateTimeField(default=now)
 	
     def __str__( self ) :
         return f"{self.label}"

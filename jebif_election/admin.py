@@ -46,13 +46,13 @@ class ElectionAdmin( admin.ModelAdmin ) :
     def populate_voters( self, request, queryset ) :
         for el in queryset :
             for candidat in el.candidats.all():
-                new_voters = jebif_users.UserInfo.objects.filter(is_member=True, is_deleted=False).exclude(vote__election=el)
+                new_voters = jebif_users.UserInfo.objects.filter(is_member=True, is_deleted=False).exclude(vote__election=el, vote__candidat=candidat, vote__has_voted=True)
                 #Create a line for the vote of each user for each candidat in the election      #WARNING: creates a lot of lines at once
-                for mi in new_voters :
+                for userinfo in new_voters :
                     election.Vote.objects.create(
                         election=el,
                         candidat=candidat,
-                        voter=mi,
+                        voter=userinfo,
                     )
                 messages.success(request, f"{el}: {new_voters.count()} voter(s) added for the election of candidate {candidat}")
 

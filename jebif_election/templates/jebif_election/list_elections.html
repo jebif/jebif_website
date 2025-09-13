@@ -1,10 +1,18 @@
 {% extends 'jebif_website/base.html'%}
 
 {% block content %}
-	{% for el in elections %}
+    {% if elections %}
 
-        <p><a href="{%url 'vote' el.id %}" class="text-decoration-none" style="color: #436d8f;">{{el.label}}</a></p>
+        <h2>Liste des Elections ouvertes</h2>
 
-    {% endfor %}
+        {% for el in elections %}
+            <p><a href="{%url 'vote' el.id %}" class="text-decoration-none" style="color: #436d8f;">{{el.label}}</a></p>
+        {% endfor %}
+
+    {% else %}
+
+        <h2>Aucune Election n'est ouverte en ce moment.</h2>
+        
+    {% endif %}
 
 {% endblock content %}
