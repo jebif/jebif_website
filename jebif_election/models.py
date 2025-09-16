@@ -17,6 +17,8 @@ class Election( models.Model ) :
 	#voteA_label = models.CharField("Vote A", max_length=150, blank=True)   #keep it or not?
 	#voteB_label = models.CharField("Vote B", max_length=150, blank=True)   #keep it or not?
     date = models.DateTimeField(default=now)
+    waiting = models.BooleanField(default=False) #to allow users to candidate for an election
+    ended = models.BooleanField(default=False)
 	
     def __str__( self ) :
         return f"{self.label}"
@@ -54,4 +56,14 @@ class Vote(models.Model):
         if el_candidat != self.election.id:    #change that with an assert
             print("Error: incorrect duo candidat/election.")
 
+
+class PendingCandidates(models.Model):
+    election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='pending_candidats')
+    label = models.CharField("Libellé", max_length=150)
+    description = models.TextField("Description")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='utilisateur')
+    pending = models.BooleanField(default=True)
+
+    def __str__( self ) :
+        return f"{self.election.label}/{self.label}/{self.user}"
 	

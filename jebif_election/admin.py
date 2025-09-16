@@ -17,7 +17,7 @@ class VoteInline(admin.TabularInline):
 class ElectionAdmin( admin.ModelAdmin ) :
     inlines = [CandidateInline, VoteInline]
     list_display = ('label', 'opened')
-    actions = ['populate_voters', 'check_integrity', 'open', 'close']
+    actions = ['populate_voters', 'check_integrity', 'open', 'close', 'end']
 
     @admin.action(description="Check integrity of selected elections")
     def check_integrity(self, request, queryset):   # Useless now?
@@ -33,6 +33,7 @@ class ElectionAdmin( admin.ModelAdmin ) :
 
     def _set_opened( self, request, queryset, opened ) :
         queryset.update(opened=opened)
+        queryset.update(waiting=False)
 
     @admin.action(description="Open selected elections")
     def open( self, request, queryset ) :
@@ -41,6 +42,15 @@ class ElectionAdmin( admin.ModelAdmin ) :
     @admin.action(description="Close selected elections")
     def close( self, request, queryset ) :
         return self._set_opened(request, queryset, False)
+    
+    @admin.action(description="End selected elections")
+    def end(self, request, queryset) :
+        for el in queryset:
+            el.ended=True
+            el.waiting=False
+            el.opened=False
+            el.save()
+            
 		
     @admin.action(description="Populate voters of selected elections")
     def populate_voters( self, request, queryset ) :
@@ -58,5 +68,40 @@ class ElectionAdmin( admin.ModelAdmin ) :
 
 
 
+class PendingCandidateAdmin(admin.ModelAdmin):
+    model=election.PendingCandidates
+    list_display = ('user', 'label', 'pending',)
+    actions = ['validate_candidature', 'unvalidate_candidature',]
+
+    @admin.action(description="Validate candidatures")
+    def validate_candidature(self, request, queryset):
+        count = 0
+        for pending in queryset:
+            if pending.pending==True:
+                election.Candidates.objects.create(election=pending.election,
+                                                label=pending.label,
+                                                description=pending.description)
+                pending.pending=False
+                pending.save()
+                count += 1
+            else:
+                messages.error(request, f"{pending.label} was removed from the pending candidatures, it can't be validated.")
+        messages.success(request, f"{count} Candidate(s) added for next election(s)")
+
+    @admin.action(description="Unvalidate candidatures")
+    def unvalidate_candidature(self, request, queryset):
+        count = 0
+        for pending in queryset:
+            if pending.pending==True:
+                pending.pending=False
+                pending.save()
+                count += 1
+            else:
+                messages.error(request, f"{pending.label} was already removed from the pending candidatures, it can't be unvalidated again.")
+        messages.success(request, f"{count} Candidate(s) was(were) marked as not pending.")
+
+
+
 admin.site.register(election.Election, ElectionAdmin)   
 
+admin.site.register(election.PendingCandidates,PendingCandidateAdmin)

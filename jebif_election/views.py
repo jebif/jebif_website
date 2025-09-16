@@ -4,9 +4,11 @@ from django.contrib import messages
 from django.utils.timezone import now
 
 from jebif_election.models import Election, Vote
-from jebif_election.forms import NewVoteForm #, MailingForm
+from jebif_election.forms import NewVoteForm, NewCandidateForm #, MailingForm
 
 import datetime
+
+
 
 
 def vote_view(request, election_id):
@@ -49,11 +51,38 @@ def vote_view(request, election_id):
 
 
 def list_elections_view(request):
+
+    if not request.user.info.is_member:
+        messages.error(request, "Vous n'avez pas accès à cette page.")
+        return redirect("/")
+
     elections = Election.objects.filter(opened=True).order_by("-date")
+    waiting_el = Election.objects.filter(waiting=True).order_by("-date")
     if len(elections) == 0:
-         return render(request, "jebif_election/list_elections.html")
+         return render(request, "jebif_election/list_elections.html", {"waiting_el": waiting_el})
     else:
-        return render(request, "jebif_election/list_elections.html", {"elections": elections})
+        return render(request, "jebif_election/list_elections.html", {"elections": elections, "waiting_el": waiting_el})
+
+
+def candidate_to_election_view(request):
+    if not request.user.info.is_member:
+        messages.error(request, "Vous n'avez pas accès à ce formulaire.")
+        return redirect("/")
+
+    elections = Election.objects.filter(waiting=True).order_by("-date")
+    if request.method == 'POST':   
+        form = NewCandidateForm(request.POST, user=request.user, elections=elections)
+        if form.is_valid():
+            candidat = form.save(commit=False)
+            candidat.user = request.user
+            candidat.save()
+            messages.success(request, "Votre candidature a bien été enregistré.")
+            return redirect("list_elections")
+    else:
+        form = NewCandidateForm(user=request.user, elections=elections)
+
+    return render(request, "jebif_election/candidate_form.html", {"form": form, "elections": elections})
+
 
 
 def is_admin() :

@@ -2,9 +2,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 import jebif_election.models as election
-from jebif_election.models import Vote
+from jebif_election.models import Vote, Candidates, PendingCandidates
 
 #from django.utils.translation import gettext_lazy as _ # meh, wth
+
+# to add fields for crispy
+#from crispy_forms.helper import FormHelper
+#from crispy_forms.layout import Layout, Field, Submit
 
 class VoteForm( forms.Form ) :                      #INCORRECT FOR NOW
     vote = forms.ChoiceField(widget=forms.RadioSelect)
@@ -94,7 +98,54 @@ class NewVoteForm(forms.Form):
         cleaned_data = super().clean()
 
         # Vérifier que l’utilisateur a bien les droits
-        if self.user and not self.user.info.is_member:
+        if (self.user and not self.user.info.is_member) or (not self.user):
             raise forms.ValidationError("Vous ne pouvez pas remplir ce formulaire.")
 
         return cleaned_data
+    
+
+class NewCandidateForm(forms.ModelForm):
+    class Meta:
+        model = PendingCandidates
+        fields = ["label", "description",]
+
+    label = forms.CharField(label="Votre nom", max_length=50)
+    description = forms.CharField(label="Description (500 caractères max)", max_length=500)
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        elections = kwargs.pop("elections", None)
+        super().__init__(*args, **kwargs)
+        
+        if elections is not None:
+            self.fields["election"]= forms.ModelChoiceField(queryset=elections,
+                                                            label="Candidater pour l'élection:",
+                                                            #widget=forms.RadioSelect,
+                                                            required=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        election = cleaned_data.get("election")
+        # Check if user is a member
+        if (self.user and not self.user.info.is_member) or (not self.user):
+            raise forms.ValidationError("Vous ne pouvez pas remplir ce formulaire.")
+        
+        # Check if another candidature from the user already exist
+        exists = PendingCandidates.objects.filter(
+                user=self.user, election=election
+            ).exists()
+        if exists:
+                raise forms.ValidationError(
+                    "Vous avez déjà soumis une candidature pour cette élection."
+                )
+
+        return cleaned_data
+    
+
+    def save(self, commit = True):
+        candidat = super().save(commit=False)
+        if self.cleaned_data.get("election"):
+            candidat.election = self.cleaned_data["election"]
+        if commit:  
+            candidat.save()
+        return candidat
