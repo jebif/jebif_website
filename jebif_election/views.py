@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
 from django.utils.timezone import now
 
@@ -10,7 +10,7 @@ import datetime
 
 
 
-
+@login_required(login_url='login')
 def vote_view(request, election_id):
     el = get_object_or_404(Election, id=election_id)
 
@@ -41,7 +41,7 @@ def vote_view(request, election_id):
                                             candidat=candidat,
                                             voter=request.user.info,
                                             defaults={"choix": choix, "date": now, "has_voted": True},)
-            messages.success(request, "Vos votes ont bien été enregistrés ✅")
+            messages.success(request, "✅ Vos votes ont bien été enregistrés.")
             #return redirect("ok/")
             return render(request,"jebif_election/vote_ok.html")
     else:
@@ -50,8 +50,8 @@ def vote_view(request, election_id):
     return render(request, "jebif_election/vote.html", {"election": el, "candidates": candidates, "form": form})
 
 
+@login_required(login_url='login')
 def list_elections_view(request):
-
     if not request.user.info.is_member:
         messages.error(request, "Vous n'avez pas accès à cette page.")
         return redirect("/")
@@ -63,7 +63,7 @@ def list_elections_view(request):
     else:
         return render(request, "jebif_election/list_elections.html", {"elections": elections, "waiting_el": waiting_el})
 
-
+@login_required(login_url='login')
 def candidate_to_election_view(request):
     if not request.user.info.is_member:
         messages.error(request, "Vous n'avez pas accès à ce formulaire.")
@@ -76,7 +76,7 @@ def candidate_to_election_view(request):
             candidat = form.save(commit=False)
             candidat.user = request.user
             candidat.save()
-            messages.success(request, "Votre candidature a bien été enregistré.")
+            messages.success(request, "✅ Votre candidature a bien été enregistré. ")
             return redirect("list_elections")
     else:
         form = NewCandidateForm(user=request.user, elections=elections)

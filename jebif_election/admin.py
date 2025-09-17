@@ -17,19 +17,31 @@ class VoteInline(admin.TabularInline):
 class ElectionAdmin( admin.ModelAdmin ) :
     inlines = [CandidateInline, VoteInline]
     list_display = ('label', 'opened')
-    actions = ['populate_voters', 'check_integrity', 'open', 'close', 'end']
+    actions = ['populate_voters', 'check_integrity', 'new_check_integrity', 'open', 'close', 'end']
 
     @admin.action(description="Check integrity of selected elections")
-    def check_integrity(self, request, queryset):   # Useless now?
+    def check_integrity(self, request, queryset):
         for el in queryset:
             voter_ids = list(el.vote.values_list("voter", flat=True))  #need to check if correct #user_id?
             #check number of votes
-            if len(voter_ids) != len(set(voter_ids)):
+            if len(voter_ids) != len(set(voter_ids)):                   # WRONG since can vote for multiple candidates, multiple rows with same voter
                 messages.error(request, f"{el}: duplicated voters!!")
             #elif el.vote_set.count() != el.voter.filter(has_voted=True).count():   #removed since now voters fused with vote
             #    messages.error(request, f"{el}: mismatch number of votes/voters")
             else:
                 messages.success(request, f"{el}: No integrity issue with the number of voters.")
+
+    @admin.action(description="New Check integrity of selected elections")
+    def new_check_integrity(self, request, queryset):
+        for el in queryset:  
+            for candidat in el.candidats.all():
+                flat_voter_ids = list(candidat.vote.values_list("voter", flat=True))
+                all_voter_ids = list(candidat.vote.values_list("voter"))
+                #check number of votes
+                if len(flat_voter_ids) != len(set(all_voter_ids)):                   
+                    messages.error(request, f"{el}: duplicated voters for candidat {candidat.label}!!")
+                else:
+                    messages.success(request, f"{el.label}: No integrity issue with the number of voters for candidat {candidat.label}.")
 
     def _set_opened( self, request, queryset, opened ) :
         queryset.update(opened=opened)
