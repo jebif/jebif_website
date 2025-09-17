@@ -1,0 +1,29 @@
+{% extends 'jebif_website/base.html'%}
+
+{% block content %}
+
+
+    <h2>Résultats pour {{ election.label }}</h2>
+
+    <p>{{election.intro}}</p>
+
+    <table>
+        <tr>
+            <th>Candidat</th>
+            <th>Oui</th>
+            <th>Non</th>
+            <th>Abstention</th>
+            <th>Total</th>
+        </tr>
+        {% for candidat in results %}
+            <tr>
+            <td>{{ candidat.label }}</td>
+            <td>{{ candidat.oui }}</td>
+            <td>{{ candidat.non }}</td>
+            <td>{{ candidat.abstention }}</td>
+            <td>{{ candidat.total }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock content %}

@@ -1,0 +1,22 @@
+{% extends 'jebif_website/base.html'%}
+
+{% block content %}
+
+    {% if ended_el %}
+
+        <h2>Liste des Résultats d'Elections</h2>
+
+        {% for el in ended_el %}
+            <ul>
+                <li><a href="{%url 'results' el.id %}" class="text-decoration-none" style="color: #436d8f;">{{el.label}}</a>
+                </li>
+            </ul>
+        {% endfor %}
+
+    {% else %}
+
+        <h2>Aucune Election n'a été terminée.</h2>
+        
+    {% endif %}
+
+{% endblock content %}

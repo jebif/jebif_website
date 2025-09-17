@@ -1,11 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-
-import jebif_users.models as jebif_users
+from django.db.models import Count, Q
 
 import datetime
+
 import jebif_main.settings as settings
+import jebif_users.models as jebif_users
+
 
 
 class Election( models.Model ) :
@@ -25,6 +27,16 @@ class Election( models.Model ) :
 	
     def get_absolute_url( self ) :
         return f"/{settings.ROOT_URL}/{self.id}/"
+    
+    def get_results(self):
+        return (
+            self.candidats.annotate(
+                oui=Count("vote", filter=Q(vote__choix=Vote.Choices.OUI)),
+                non=Count("vote", filter=Q(vote__choix=Vote.Choices.NON)),
+                abstention=Count("vote", filter=Q(vote__choix=Vote.Choices.ABSTENTION)),
+                total=Count("vote"),
+            )
+        )
 
 
 class Candidates(models.Model):
@@ -34,6 +46,7 @@ class Candidates(models.Model):
 
 	def __str__( self ) :
 		return f"{self.election.label}/{self.label}"
+
 
 class Vote(models.Model):
     class Choices(models.TextChoices):
@@ -67,3 +80,15 @@ class PendingCandidates(models.Model):
     def __str__( self ) :
         return f"{self.election.label}/{self.label}/{self.user}"
 	
+
+def get_election_results(election_id):
+    el = Election.objects.get(id=election_id)
+    results = (
+        el.candidats
+        .annotate(
+            oui=Count("vote", filter=Q(vote__choix=Vote.Choices.OUI)),
+            non=Count("vote", filter=Q(vote__choix=Vote.Choices.NON)),
+            abstention=Count("vote", filter=Q(vote__choix=Vote.Choices.ABSTENTION)),
+            total=Count("vote"),))
+
+    return results

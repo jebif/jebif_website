@@ -9,7 +9,8 @@ urlpatterns = [
     path('election/<int:election_id>/vote_already_done/', TemplateView.as_view(template_name="jebif_election/vote_already_done.html"), name='vote_already_done'),
     path('list_elections/', list_elections_view, name='list_elections'),
     path('election/candidate/', candidate_to_election_view, name='candidate_to_election'),
-    #path('<int:election_id>/results/', results),
+    path('election/list_results/', list_result_view, name='list_results'),
+    path('election/<int:election_id>/results/', result_view, name='results'),
 	#path('<int:election_id>/mailing/', mailing),
 
 ]

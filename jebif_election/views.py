@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
 from django.utils.timezone import now
 
-from jebif_election.models import Election, Vote
+
+from jebif_election.models import Election, Vote, get_election_results
 from jebif_election.forms import NewVoteForm, NewCandidateForm #, MailingForm
 
 import datetime
@@ -58,10 +59,11 @@ def list_elections_view(request):
 
     elections = Election.objects.filter(opened=True).order_by("-date")
     waiting_el = Election.objects.filter(waiting=True).order_by("-date")
+    ended_el = Election.objects.filter(ended=True).order_by("-date")
     if len(elections) == 0:
-         return render(request, "jebif_election/list_elections.html", {"waiting_el": waiting_el})
+         return render(request, "jebif_election/list_elections.html", {"waiting_el": waiting_el, "ended_el": ended_el})
     else:
-        return render(request, "jebif_election/list_elections.html", {"elections": elections, "waiting_el": waiting_el})
+        return render(request, "jebif_election/list_elections.html", {"elections": elections, "waiting_el": waiting_el, "ended_el": ended_el})
 
 @login_required(login_url='login')
 def candidate_to_election_view(request):
@@ -84,11 +86,35 @@ def candidate_to_election_view(request):
     return render(request, "jebif_election/candidate_form.html", {"form": form, "elections": elections})
 
 
+@login_required(login_url='login')
+def result_view(request, election_id):
+    el = get_object_or_404(Election, id=election_id)
+    #results = get_election_results(election_id)
+    results = el.get_results()
 
-def is_admin() :
+    if not request.user.info.is_member:
+        messages.error(request, "Vous n'avez pas accès à cette page.")
+        return redirect("/")  
+
+    if el.opened:
+        messages.error(request, "Cette élection n'est pas terminée.")
+        return render(request, "jebif_election/vote.html", {"election": el,})
+    else:
+        return render(request, "jebif_election/results.html", {"election": el, "results": results,})
+    
+
+@login_required(login_url='login')
+def list_result_view(request):
+    if not request.user.info.is_member:
+        messages.error(request, "Vous n'avez pas accès à cette page.")
+        return redirect("/")
+
+    ended_el = Election.objects.filter(ended=True).order_by("-date")
+    return render(request, "jebif_election/list_results.html", {"ended_el": ended_el,})
+
+
+
+"""def is_admin() :
 	def validate( u ) :
 		return u.is_authenticated() and u.is_staff
-	return user_passes_test(validate)
-
-
-
+	return user_passes_test(validate)"""
