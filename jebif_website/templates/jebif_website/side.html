@@ -20,7 +20,7 @@
                 {% for platform in platforms_sidebar %}
                     <ul>
                         <li>
-                        {{platform.title}} : <a href="{{ platform.url }}">{{platform.identification}}</a>
+                        {{platform.title}} : <a href="{{ platform.url }}" style="color: #436d8f;">{{platform.identification}}</a>
                         </li>
                     </ul>
                 {% empty %}
@@ -50,7 +50,7 @@
             <div class="card-body">
                 <h5 class="card-title">IRC</h5>
                 <ul>
-                    <li>channel IRC: <a href="http://webchat.freenode.net/?channels=jebif">#jebif</a></li>
+                    <li>channel IRC: <a href="http://webchat.freenode.net/?channels=jebif" style="color: #436d8f;">#jebif</a></li>
                 </ul>
             </div>
         </div>
@@ -61,7 +61,7 @@
                 <h5 class="card-title">Articles récents</h5>
                 <ul>
                     {% for article in recent_articles %}
-                        <li><a href="#"> {{article.title}} </a> </li>
+                        <li><a href="#" style="color: #436d8f;"> {{article.title}} </a> </li>
                     {% empty %}
                         <li>Aucun article publié</li>
                     {% endfor %}
@@ -73,8 +73,8 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title">RSS</h5>
-                <p><a href="https://jebif.fr/mentions-legales/feed/">RSS - Articles</a></p>
-                <p><a href="https://jebif.fr/mentions-legales/comments/feed/">RSS - Commentaires</a></p>
+                <p><a href="https://jebif.fr/mentions-legales/feed/" style="color: #436d8f;">RSS - Articles</a></p>
+                <p><a href="https://jebif.fr/mentions-legales/comments/feed/" style="color: #436d8f;">RSS - Commentaires</a></p>
             </div>
         </div>
 
@@ -86,6 +86,6 @@
                 <p>{% load static %}
                 <img src="{% static 'jebif_website/images/CreativeCommon88x31.png' %}" alt="creativecommon">
                 </p>
-                À l'exception du logo de l'association, ce blog et son contenu sont sous licence <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+                À l'exception du logo de l'association, ce blog et son contenu sont sous licence <a href="http://creativecommons.org/licenses/by-sa/3.0/" style="color: #436d8f;">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
             </div>
         </div>

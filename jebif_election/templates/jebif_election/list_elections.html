@@ -1,0 +1,32 @@
+{% extends 'jebif_website/base.html'%}
+
+{% block content %}
+
+    {% if elections %}
+
+        <h2>Liste des Elections ouvertes</h2>
+
+        {% for el in elections %}
+            <ul>
+                <li><a href="{%url 'vote' el.id %}" class="text-decoration-none" style="color: #436d8f;">{{el.label}}</a>
+                </li>
+            </ul>
+        {% endfor %}
+
+    {% else %}
+
+        <h2>Aucune Election n'est ouverte en ce moment.</h2>
+        
+    {% endif %}
+
+    {% if waiting_el|length > 0 %}
+        <hr class="my-4">
+        <h2><a href="{%url 'candidate_to_election' %}" class="text-decoration-none" style="color: #436d8f;">Candidater à une prochaine élection</a></h2>
+    {% endif %}
+
+    {% if ended_el|length > 0 %}
+        <hr class="my-4">
+        <h2><a href="{%url 'list_results' %}" class="text-decoration-none" style="color: #436d8f;">Résultat des élections précédentes</a></h2>
+    {% endif %}
+
+{% endblock content %}

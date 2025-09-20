@@ -42,6 +42,10 @@
                                 {% include 'jebif_users/button_profile.html'%}
                             {% endif %}
 
+                            {% if request.user.info.is_member %}
+                                {% include 'jebif_election/button_election.html'%}
+                            {% endif %}
+
                             {% include 'jebif_users/button_logout.html'%}
 
                         {% else %}

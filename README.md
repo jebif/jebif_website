@@ -5,7 +5,12 @@ The goal of this repo is to create the structure of the JeBiF website, previousl
 Depending on external circumstances, the others aspects of the website related to the elections will be added.
 
 ## Dependencies
+`python -m pip install Django` for Django, the Python framework used to make this website (Python 3 is required).
+
+For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/getting-started/download/. It is used to handle code for html pages.
+
 `pip install django-tinymce` for tinymce, used for writing the article in the admin page.
+
 `pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
 
 ## Structure
@@ -24,6 +29,7 @@ In case they aren't logged in, a login button and a Registration button are disp
 The admin(s) have its Profile Button replaced by an Admin Button, with a page  showing links to their own profile or various Admin functions (like validating Membership of Users).
 
 ## Elections
+There is an Election class with a name (label) and a description (more fields too, but may change), which can be opened or closed. For each Election there can be Candidates, a class linked to an Election and with a label and a description. In order for the Users to vote, a Vote class was created: it represent the vote of the user, and is linked to an Election and a Candidate. To populate the list of voters, a has_voted parameter was added which will be changed to True when the user vote, which helps showing only the candidates remaining in an election without a vote from the user. The List of the Opened Election is accessible trough a button in the Navbar. Only the Opened Election will be visible (with a link). On the Election page, only the candidates for which the user hasn't voted yet will appear; in case there is none, a new page will inform the user.
 
 ## Miscellaneous
 Made by Alexandre Lerévérend: ask for any question.
@@ -36,3 +42,7 @@ Made by Alexandre Lerévérend: ask for any question.
 -remove unwanted old code (currently commented) when sure it's not needed
 
 -check if emails are sent correctly ( maybe some changes in settings for that too, plus all the methods and functions in users)
+
+-add a page with a form to create an election (or not if admin interface is enough)
+
+-add a page with a form to create an event (for everyuser? if yes, limit to only one pending event)

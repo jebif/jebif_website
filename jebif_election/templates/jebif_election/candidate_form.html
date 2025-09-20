@@ -1,0 +1,30 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    {% if elections|length > 0 and user.info.is_member %}
+        
+        <h1>Liste des élections à venir</h1>
+        <hr class="mt-2 mb-1">
+        <hr class="mb-4 mt-1">
+        {% for el in elections %}
+            <h3>{{ el.label }}</h3>
+            <p>Jour de l'élection: {{ el.start_date }}</p>
+            <p>{{ el.intro }}</p>
+            <hr class="my-4">
+        {% endfor %}
+
+        <h1>Candidater à une élection</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form |crispy }}
+            <button type="submit">Soumettre ma candidature</button>
+        </form>
+
+    {% else %}
+        <h2>Il n'y a pour l'instant aucune élection de prévue prochainement.</h2>
+
+    {% endif %}
+{% endblock content %}
