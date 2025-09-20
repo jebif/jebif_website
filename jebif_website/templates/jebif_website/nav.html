@@ -2,7 +2,9 @@
 <hr class="my-4"> 
 <nav class="navbar navbar-expand-lg navbar-light bg-light bg-body-tertiary">
     <div class="container-fluid">
+
         <a class="navbar-brand" href="{% url 'home' %}">Accueil</a>
+
         <button class="navbar-toggler"
             data-bs-toggle="collapse" 
             data-bs-target="#navbarNavDropdown" 
@@ -11,53 +13,56 @@
             aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-         <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav me-auto align-items-center">
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">       
+            <ul class="navbar-nav w-100 align-items-center">
+
                 {% for category in categories_nav %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" 
-                        href="{% url 'articles_per_category' category.slug %}" 
-                        role="button" 
-                        data-bs-toggle="dropdown-toggle" 
-                        aria-expanded="false">
-                        {{ category.name }}
-                    </a>
-                    {% if category.subcategory.all %}
-                        <ul class="dropdown-menu">
-                            {% for subcat in category.subcategory.all %}
-                                <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" 
+                            href="{% url 'articles_per_category' category.slug %}" 
+                            role="button" 
+                            data-bs-toggle="dropdown-toggle" 
+                            aria-expanded="false">
+                            {{ category.name }}
+                        </a>
+                        {% if category.subcategory.all %}
+                            <ul class="dropdown-menu">
+                                {% for subcat in category.subcategory.all %}
+                                    <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
                 {% endfor %}
 
-                <span class="navbar-nav">
-                    <div class="col">
-                        {% if request.user.is_authenticated %}
-                        
-                            {% if request.user.is_staff %}
-                                {% include 'jebif_users/button_admin.html'%}
-                            {% else %}
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item dropdown ms-auto" id="menu-dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="menuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #3c72c4; color: white;">
+                            Menu
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end text-center" aria-labelledby="menuButton">
+                            
                                 {% include 'jebif_users/button_profile.html'%}
-                            {% endif %}
+                                    {% if request.user.is_staff %}
+                                        {% include 'jebif_users/button_admin.html'%} 
+                                    {% endif %}
 
-                            {% if request.user.info.is_member %}
-                                {% include 'jebif_election/button_election.html'%}
-                            {% endif %}
+                                    {% if request.user.info.is_member %}
+                                        {% include 'jebif_election/button_election.html'%}
+                                    {% endif %}
 
-                            {% include 'jebif_users/button_logout.html'%}
-
-                        {% else %}
-
-                                {% include 'jebif_users/button_login.html'%}
-
-                                {% include 'jebif_users/button_registration.html'%}
-
-                        {% endif %}
-                    </div>
-                    
-                </span>
+                                {% include 'jebif_users/button_logout.html'%}
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item ms-auto d-flex flex-column align-items-end" id="unconnected-col">
+                        
+                        {% include 'jebif_users/button_login.html'%}
+                        {% include 'jebif_users/button_registration.html'%}
+                        
+                    </il>
+                {% endif %}
             </ul>
             
         </div>
@@ -68,7 +73,7 @@
 
 <style>
 /* Change default behavior for the click */
-.nav-item.dropdown:hover .dropdown-menu {
+.nav-item.dropdown:not(#menu-dropdown):hover .dropdown-menu {
     display: block;
 }
 
@@ -76,4 +81,18 @@
 .nav-item.dropdown .dropdown-menu {
     margin-top: 0;
 }
+
+/* règle spécifique au dropdown du menu */
+#menu-dropdown .dropdown-menu {
+    
+    right: 0;
+    left: auto;
+    text-align: center;
+}
+#menu-dropdown .dropdown-menu .btn {
+  display: block;        /* bouton prend toute la largeur */
+  text-align: center;     /* contenu du bouton aligné à droite */
+  width: 100%;           /* bouton occupe toute la largeur du menu */
+}
+
 </style>
