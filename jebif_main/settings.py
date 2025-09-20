@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jebif_website',
     'jebif_users',
+    'jebif_election',
     'tinymce',          #requires: pip install django-tinymce
     'crispy_forms',     #for nicer form
     'crispy_bootstrap5',

@@ -1,0 +1,20 @@
+{% extends 'jebif_website/base.html' %}
+
+{% block content %}
+
+    {% if user.is_authenticated %}
+
+        {% block protected_content %}
+
+        {% endblock protected_content%}
+
+    {% else %}
+
+        <h2>Vous êtes déconnecté</h2>
+        <p>Connectez vous pour accéder à cette page.</p>
+
+    {% endif %}
+
+
+
+{% endblock %}
