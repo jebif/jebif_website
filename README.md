@@ -5,7 +5,12 @@ The goal of this repo is to create the structure of the JeBiF website, previousl
 Depending on external circumstances, the others aspects of the website related to the elections will be added.
 
 ## Dependencies
+`python -m pip install Django` for Django, the Python framework used to make this website (Python 3 is required).
+
+For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/getting-started/download/. It is used to handle code for html pages.
+
 `pip install django-tinymce` for tinymce, used for writing the article in the admin page.
+
 `pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
 
 ## Structure

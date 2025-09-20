@@ -14,10 +14,8 @@ def default_end():
 class Election( models.Model ) :
     opened = models.BooleanField(default=False)
     label = models.CharField("Libellé", max_length=50)
-    max_choices = models.PositiveSmallIntegerField()            #what's the use?
-    min_choices = models.PositiveSmallIntegerField(default=0)   #what's the use?
     intro = models.TextField("Introduction")
-    date = models.DateTimeField(default=now) #CHANGE THE NAME LATER (need to check everywhere)
+    start_date = models.DateTimeField(default=now)
     end_date = models.DateTimeField(default=default_end)
     waiting = models.BooleanField(default=False) #to allow users to candidate for an election
     ended = models.BooleanField(default=False)  #to close an election, so the results can be seen
@@ -71,6 +69,7 @@ class Vote(models.Model):
         return f"{self.candidat.election.label}/{self.candidat.label}/{self.voter.user.username}"
 
     def check_duo_elect_candid(self):
+        #Function Not used yet
         el_candidat = self.candidat.election.id
         if el_candidat != self.election.id:    #change that with an assert
             print("Error: incorrect duo candidat/election.")

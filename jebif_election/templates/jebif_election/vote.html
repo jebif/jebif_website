@@ -1,29 +1,30 @@
 {% extends 'jebif_website/base.html'%}
 
 {% block content %}
+    {% load custom_tags %}
 
     <h1>Élection {{ election.label }}</h1>
     {% if form.errors %}
         <p class="errornote">Merci de corriger les erreurs ci-dessous.</p>
     {% endif %}
 
+    <p>Fin de l'élection: {{election.end_date}}</p>
     {{ election.intro|safe|linebreaks }}
 
     <hr class="my-4">
 
-    {% if election.max_choices > 0 %}
-        <h2>Description des candidats/votes</h2>
-        <dl>
-        {% for candidat in election.candidats.all %}
-            <dt>Candidat/Vote: {{ candidat.label|escape }}</dt>
-            <dd>{{ candidat.description|escape|linebreaks }}</dd>
-            {% if candidat.pdffile %}
-            <dd>Vous pouvez voir <a href="{{ candidat.pdffile.url }}" target="_blank">ici</a> le document associé.</dd>
-            <!--In case we want to integrate it, use "<iframe src="{{ candidate.pdffile.url }}" width="100%" height="600px"></iframe>"-->
-            {% endif %}
-        {% endfor %}
-        </dl>
-    {% endif %}
+    <h2>Description des candidats/votes</h2>
+    <dl>
+    {% for candidat in election.candidats.all %}
+        <dt>{{ candidat.label|contains:"vote"|yesno:"Vote,Candidat" }}: {{ candidat.label|escape }}</dt>
+        <dd>{{ candidat.description|escape|linebreaks }}</dd>
+        {% if candidat.pdffile %}
+        <dd>Vous pouvez voir <a href="{{ candidat.pdffile.url }}" target="_blank">ici</a> le document associé.</dd>
+        <!--In case we want to integrate it, use "<iframe src="{{ candidate.pdffile.url }}" width="100%" height="600px"></iframe>"-->
+        <hr class="my-4">
+        {% endif %}
+    {% endfor %}
+    </dl>
 
     <hr class="my-4">
 

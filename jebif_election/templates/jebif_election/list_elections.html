@@ -20,10 +20,12 @@
     {% endif %}
 
     {% if waiting_el|length > 0 %}
+        <hr class="my-4">
         <h2><a href="{%url 'candidate_to_election' %}" class="text-decoration-none" style="color: #436d8f;">Candidater à une prochaine élection</a></h2>
     {% endif %}
 
     {% if ended_el|length > 0 %}
+        <hr class="my-4">
         <h2><a href="{%url 'list_results' %}" class="text-decoration-none" style="color: #436d8f;">Résultat des élections précédentes</a></h2>
     {% endif %}
 

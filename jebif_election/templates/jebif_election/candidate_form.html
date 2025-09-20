@@ -6,11 +6,14 @@
 
     {% if elections|length > 0 and user.info.is_member %}
         
-
         <h1>Liste des élections à venir</h1>
+        <hr class="mt-2 mb-1">
+        <hr class="mb-4 mt-1">
         {% for el in elections %}
             <h3>{{ el.label }}</h3>
+            <p>Jour de l'élection: {{ el.start_date }}</p>
             <p>{{ el.intro }}</p>
+            <hr class="my-4">
         {% endfor %}
 
         <h1>Candidater à une élection</h1>

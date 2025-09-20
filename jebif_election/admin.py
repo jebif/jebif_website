@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.utils.timezone import now
 
 import jebif_election.models as election
 import jebif_users.models as jebif_users
@@ -17,30 +17,18 @@ class VoteInline(admin.TabularInline):
 
 class ElectionAdmin( admin.ModelAdmin ) :
     inlines = [CandidateInline, VoteInline]
-    list_display = ('label', 'opened')
-    actions = ['populate_voters', 'check_integrity', 'new_check_integrity', 'open', 'close', 'end']
-
-    @admin.action(description="Check integrity of selected elections")
-    def check_integrity(self, request, queryset):
-        for el in queryset:
-            voter_ids = list(el.vote.values_list("voter", flat=True))  #need to check if correct #user_id?
-            #check number of votes
-            if len(voter_ids) != len(set(voter_ids)):                   # WRONG since can vote for multiple candidates, multiple rows with same voter
-                messages.error(request, f"{el}: duplicated voters!!")
-            #elif el.vote_set.count() != el.voter.filter(has_voted=True).count():   #removed since now voters fused with vote
-            #    messages.error(request, f"{el}: mismatch number of votes/voters")
-            else:
-                messages.success(request, f"{el}: No integrity issue with the number of voters.")
+    list_display = ('label', 'waiting', 'opened', 'ended')
+    actions = ['populate_voters', 'check_integrity', 'open', 'close', 'end']
 
     @admin.action(description="New Check integrity of selected elections")
-    def new_check_integrity(self, request, queryset):
+    def check_integrity(self, request, queryset):
         for el in queryset:  
             for candidat in el.candidats.all():
                 flat_voter_ids = list(candidat.vote.values_list("voter", flat=True))
                 all_voter_ids = list(candidat.vote.values_list("voter"))
                 #check number of votes
                 if len(flat_voter_ids) != len(set(all_voter_ids)):                   
-                    messages.error(request, f"{el}: duplicated voters for candidat {candidat.label}!!")
+                    messages.error(request, f"{el.label}: duplicated voters for candidat {candidat.label}!!")
                 else:
                     messages.success(request, f"{el.label}: No integrity issue with the number of voters for candidat {candidat.label}.")
 
@@ -62,6 +50,7 @@ class ElectionAdmin( admin.ModelAdmin ) :
             el.ended=True
             el.waiting=False
             el.opened=False
+            #el.end_date=now #for now unused, but could be if methods to check open/close are changed
             el.save()
             
 		

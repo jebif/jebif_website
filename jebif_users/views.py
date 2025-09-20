@@ -1,24 +1,14 @@
-#from django.shortcuts import render, redirect
 from django.views import View
-#from .forms import UserRegisterForm
-#from django.contrib.auth.models import is_authenticated
+
+from django.contrib import messages
 from django.contrib.auth.views import LogoutView, LoginView
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import *
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.transaction import atomic
-
 from django.shortcuts import *
-#from django.views.generic import TemplateView
-
-from django.contrib.auth.decorators import *
-from urllib.parse import quote
-
-from django.urls import reverse
-
-from django.conf import settings
-
 
 import csv
 import datetime
@@ -29,7 +19,6 @@ from .forms import *
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
 	msg_subj = "Demande d'adhésion"
-	#admin_url = f"http://jebif.fr{reverse('admin_subscription')}" #NEED TO CHANGE
 	admin_url = f"http://jebif.fr/admin/auth/user/" 
 
 	msg_txt = f"""Bonjour,
@@ -84,10 +73,12 @@ class RegisterView(View):
 			user_info.user = user
 			user_info.email = user.email
 			user_info.save()
-			#if (user_info.want_member == True) and (settings.DEBUG == False):
-			#	ask_membership()
+			if (user_info.want_member == True) and (settings.DEBUG == False):
+				ask_membership()
+			messages.success(request, "✅ Ton compte a été créé, tu peux te connecter avec ton username et ton mot de passe.")
 			return redirect('home')
 		else:
+			messages.error(request, "⚠️Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
 			return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
 
 def logout(request):
@@ -166,6 +157,7 @@ def admin_subscription( request ) :
 
 @is_admin()
 def admin_subscription_accept( request, info_id ) :
+	#Function for the admin page in the website (not the interface) to accept subscription
 	with atomic() :
 		info = UserInfo.objects.get(id=info_id)
 		info.is_member = True
@@ -199,6 +191,7 @@ def admin_subscription_accept( request, info_id ) :
 
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
+	#Function for the admin page in the website (not the interface) to reject subscription
 	info = get_object_or_404(UserInfo, id=info_id)
 	info.is_deleted = True
 	info.save()
@@ -207,6 +200,7 @@ def admin_subscription_reject( request, info_id ) :
 
 @is_admin()
 def admin_export_csv( request ) :
+	#Function for the admin page in the website (not the interface) to export the list of members
 	charset = 'utf-8'
 	response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
 	response['Content-Disposition'] = 'attachment; filename=membres_jebif.csv'
