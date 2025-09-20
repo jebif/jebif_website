@@ -12,11 +12,15 @@
     <hr class="my-4">
 
     {% if election.max_choices > 0 %}
-        <h2>Description des candidats</h2>
+        <h2>Description des candidats/votes</h2>
         <dl>
         {% for candidat in election.candidats.all %}
-            <dt>{{ candidat.label|escape }}</dt>
+            <dt>Candidat/Vote: {{ candidat.label|escape }}</dt>
             <dd>{{ candidat.description|escape|linebreaks }}</dd>
+            {% if candidat.pdffile %}
+            <dd>Vous pouvez voir <a href="{{ candidat.pdffile.url }}" target="_blank">ici</a> le document associé.</dd>
+            <!--In case we want to integrate it, use "<iframe src="{{ candidate.pdffile.url }}" width="100%" height="600px"></iframe>"-->
+            {% endif %}
         {% endfor %}
         </dl>
     {% endif %}

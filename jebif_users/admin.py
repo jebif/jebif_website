@@ -71,8 +71,8 @@ def admin_mark_deleted(self, request, queryset):
 	count_user = 0
 	for obj in queryset:
 		obj.info.mark_deleted()
-		#obj.is_active = False	#Only if the account should be inaccessible to user
-		#obj.save()
+		obj.is_active = False	#Account should be inaccessible to user
+		obj.save()
 		count_user += 1
 	self.message_user(
             request,

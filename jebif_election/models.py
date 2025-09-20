@@ -8,7 +8,8 @@ import datetime
 import jebif_main.settings as settings
 import jebif_users.models as jebif_users
 
-
+def default_end():
+    return now() + datetime.timedelta(days=1)
 
 class Election( models.Model ) :
     opened = models.BooleanField(default=False)
@@ -16,11 +17,10 @@ class Election( models.Model ) :
     max_choices = models.PositiveSmallIntegerField()            #what's the use?
     min_choices = models.PositiveSmallIntegerField(default=0)   #what's the use?
     intro = models.TextField("Introduction")
-	#voteA_label = models.CharField("Vote A", max_length=150, blank=True)   #keep it or not?
-	#voteB_label = models.CharField("Vote B", max_length=150, blank=True)   #keep it or not?
-    date = models.DateTimeField(default=now)
+    date = models.DateTimeField(default=now) #CHANGE THE NAME LATER (need to check everywhere)
+    end_date = models.DateTimeField(default=default_end)
     waiting = models.BooleanField(default=False) #to allow users to candidate for an election
-    ended = models.BooleanField(default=False)
+    ended = models.BooleanField(default=False)  #to close an election, so the results can be seen
 	
     def __str__( self ) :
         return f"{self.label}"
@@ -40,12 +40,18 @@ class Election( models.Model ) :
 
 
 class Candidates(models.Model):
-	election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='candidats')
-	label = models.CharField("Libellé", max_length=150)
-	description = models.TextField("Description")
+    election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='candidats')
+    label = models.CharField("Libellé", max_length=150)
+    description = models.TextField("Description")
+    pdffile = models.FileField(
+        upload_to="elections_pdfs/",
+        blank=True,
+        null=True,
+        verbose_name="Document PDF"
+    )
 
-	def __str__( self ) :
-		return f"{self.election.label}/{self.label}"
+    def __str__( self ) :
+        return f"{self.election.label}/{self.label}"
 
 
 class Vote(models.Model):

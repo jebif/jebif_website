@@ -13,6 +13,7 @@ class CandidateInline(admin.TabularInline):
 class VoteInline(admin.TabularInline):  
     model = election.Vote
     readonly_fields = ('date', 'candidat', 'voter', 'has_voted', 'choix')
+    fields = ('date', 'candidat', 'has_voted', 'choix')
 
 class ElectionAdmin( admin.ModelAdmin ) :
     inlines = [CandidateInline, VoteInline]
