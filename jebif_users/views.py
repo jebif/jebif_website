@@ -2,19 +2,24 @@ from django.views import View
 
 from django.contrib import messages
 from django.contrib.auth.views import LogoutView, LoginView
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import *
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.transaction import atomic
-from django.shortcuts import *
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, HttpResponseRedirect
 
 import csv
 import datetime
 
 from .models import *
 from .forms import *
+
+# Get emails from "Staff" users.
+User = get_user_model()
+staff_users = User.objects.filter(is_staff=True)
+emails = [user.email for user in staff_users if user.email]
+
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
@@ -24,13 +29,14 @@ def ask_membership():
 	msg_txt = f"""Bonjour,
 			Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
 			{admin_url}"""
-	membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
+	#membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
 			
 	send_mail(
-        settings.EMAIL_SUBJECT_PREFIX + msg_subj,
-        msg_txt,
-        settings.SERVER_EMAIL,          
-        [a[1] for a in membership_managers],
+        subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
+        message=msg_txt,
+        from_email=settings.SERVER_EMAIL,          
+        #[a[1] for a in membership_managers],
+		recipient_list=emails,
         fail_silently=True
         )
 
@@ -39,8 +45,8 @@ def validate_membership( user ):
 	username = user.username
 	msg_to = user.email
 	msg_from = "NO-REPLY@jebif.fr"
-	msg_subj = u"Ton adhésion à JeBiF"
-	msg_txt = u"""
+	msg_subj = f"Ton adhésion à JeBiF"
+	msg_txt = f"""
 Bonjour {username},
 
 Tu peux modifier ton adhésion à l'association JeBiF en te rendant sur
@@ -66,20 +72,38 @@ class RegisterView(View):
 		info_form = UserInfoForm(request.POST)
 
 		if user_form.is_valid() and info_form.is_valid():
-			#creation of User
-			user = user_form.save()
-			#creation of UserInfo
-			user_info = info_form.save(commit=False)
-			user_info.user = user
-			user_info.email = user.email
-			user_info.save()
-			if (user_info.want_member == True) and (settings.DEBUG == False):
-				ask_membership()
-			messages.success(request, "✅ Ton compte a été créé, tu peux te connecter avec ton username et ton mot de passe.")
+			with atomic() :
+				#creation of User
+				user = user_form.save()
+				#creation of UserInfo
+				user_info = info_form.save(commit=False)
+				user_info.user = user
+				user_info.email = user.email
+				user_info.save()
+				if (user_info.want_member == True) and (settings.DEBUG == False):
+					ask_membership()
+				messages.success(request, "✅ Ton compte a été créé, tu peux te connecter avec ton username et ton mot de passe.")
+			send_mail(
+				subject=f"Creation de compte JeBiF",
+				message=f"""
+Bonjour {user.username},
+
+Ton compte sur le site de l'association JeBiF vient d'être créé.
+Tu peux demander ton adhésion à l'association JeBiF en te rendant sur
+le site de JeBiF, dans ta page Profile.
+
+À bientôt,
+L’équipe JeBiF (RSG-France)
+""",
+				from_email=f"NO-REPLY@jebif.fr",          
+				recipient_list=emails,
+				fail_silently=True
+				)
 			return redirect('home')
 		else:
 			messages.error(request, "⚠️Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
 			return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
+
 
 def logout(request):
     if request.method == 'POST':
@@ -170,21 +194,17 @@ def admin_subscription_accept( request, info_id ) :
 	msg_to = [info.email]
 	msg_subj = "Bienvenue dans l'association JeBiF"
 	msg_txt = f"""
-#Bonjour {info.firstname},
+Bonjour {info.firstname},
 
-#Nous avons bien pris en compte ton adhésion à l’association JeBiF. N’hésite pas à nous contacter si tu as des questions, des commentaires, des idées, etc…
+Nous avons bien pris en compte ton adhésion à l’association JeBiF. N’hésite pas à nous contacter si tu as des questions, des commentaires, des idées, etc…
 
-#Tu connais sans doute déjà notre site internet http://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
-#http://www.iscbsc.org/rsg/rsg-france
+Tu connais sans doute déjà notre site internet http://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
+http://www.iscbsc.org/rsg/rsg-france
 
-#Tu vas être inscrit à la liste de discussion des membres de l’association. Tu pourras y consulter les archives si tu le souhaites.
-#http://lists.jebif.fr/mailman/listinfo/membres
-
-#À bientôt,
-#L’équipe JeBiF (RSG-France)
+À bientôt,
+L’équipe JeBiF (RSG-France)
 """
-	if settings.DEBUG == False:
-		send_mail(msg_subj, msg_txt, msg_from, msg_to)
+	send_mail(msg_subj, msg_txt, msg_from, msg_to)
 
 	return HttpResponseRedirect("../../")
 
@@ -192,9 +212,10 @@ def admin_subscription_accept( request, info_id ) :
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
 	#Function for the admin page in the website (not the interface) to reject subscription
-	info = get_object_or_404(UserInfo, id=info_id)
-	info.is_deleted = True
-	info.save()
+	with atomic() :
+		info = get_object_or_404(UserInfo, id=info_id)
+		info.is_deleted = True
+		info.save()
 	return HttpResponseRedirect("../../")
 
 

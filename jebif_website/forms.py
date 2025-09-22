@@ -14,7 +14,7 @@ class NewEventForm(forms.ModelForm):
     date = forms.DateField(label="Date de l'évènement", 
                            initial=datetime.date.today,
                            widget=forms.DateInput(attrs={"type": "date"}),
-                           input_formats=["%Y-%m-%d"],  # format attendu par input[type=date]
+                           input_formats=["%Y-%m-%d"],  # format requested by input[type=date]
                            )
     localisation = forms.CharField(label="Lieu de l'évènement")
     description = forms.CharField(label="Description (500 caractères max)", max_length=500)

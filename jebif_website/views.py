@@ -1,16 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.decorators.csrf import csrf_exempt
-
+from django.conf import settings
 from django.http import JsonResponse
+from django.core.mail import send_mail
 from django.core.files.storage import default_storage
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 
 from jebif_website.models import Article, Category, Subcategory
 from jebif_website.forms import NewEventForm
     
+# Get emails from "Staff" users.
+User = get_user_model()
+staff_users = User.objects.filter(is_staff=True)
+emails = [user.email for user in staff_users if user.email]
+
 class HomeView(ListView):
     model = Article
     template_name = 'jebif_website/home.html'
@@ -76,7 +82,7 @@ def upload_image(request):
     if request.method == "POST":
         image = request.FILES["file"]
         path = default_storage.save(f"uploaded_images/{image.name}", image)
-        return JsonResponse({"location": f"/media/images/{path}"})
+        return JsonResponse({"location": f"{settings.MEDIA_URL}/images/{path}"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
@@ -93,7 +99,22 @@ def propose_event_view(request):
             pending_event.user = request.user
             pending_event.save()
             messages.success(request, "✅ Votre proposition d'évènement a bien été enregistré. ")
-            #send mail to admin?
+            #send mail to staff
+            send_mail(
+                subject="Nouvel évènement proposé",
+                message=(
+                    f"Un nouvel évènement a été soumis.\n\n"
+                    f"Titre : {pending_event.title}\n"
+                    f"Date : {pending_event.date}\n"
+                    f"Localisation : {pending_event.localisation}\n"
+                    f"Description : {pending_event.description}\n"
+                    f"Proposé par : {request.user.username}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=emails,
+                fail_silently=False,
+            )
+            
             return redirect("/")
     else:
         form = NewEventForm(user=request.user)
