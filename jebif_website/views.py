@@ -1,12 +1,15 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, DetailView
-from .models import Article, Category, Subcategory
+from django.views.decorators.csrf import csrf_exempt
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
+from jebif_website.models import Article, Category, Subcategory
+from jebif_website.forms import NewEventForm
     
 class HomeView(ListView):
     model = Article
@@ -75,3 +78,24 @@ def upload_image(request):
         path = default_storage.save(f"uploaded_images/{image.name}", image)
         return JsonResponse({"location": f"/media/images/{path}"})
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@login_required(login_url='login')
+def propose_event_view(request):
+    if not request.user.info.is_member:
+        messages.error(request, "❌ Vous n'avez pas accès à ce formulaire.")
+        return redirect("/")
+
+    if request.method == 'POST':   
+        form = NewEventForm(request.POST, user=request.user)
+        if form.is_valid():
+            pending_event = form.save(commit=False)
+            pending_event.user = request.user
+            pending_event.save()
+            messages.success(request, "✅ Votre proposition d'évènement a bien été enregistré. ")
+            #send mail to admin?
+            return redirect("/")
+    else:
+        form = NewEventForm(user=request.user)
+
+    return render(request, "jebif_website/event_form.html", {"form": form,})

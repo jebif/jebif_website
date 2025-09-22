@@ -79,7 +79,7 @@ class PendingCandidates(models.Model):
     election = models.ForeignKey(Election, on_delete=models.CASCADE, related_name='pending_candidats')
     label = models.CharField("Libellé", max_length=150)
     description = models.TextField("Description")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='utilisateur')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_candidats')
     pending = models.BooleanField(default=True)
 
     def __str__( self ) :

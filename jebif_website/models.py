@@ -94,3 +94,16 @@ class EventsDates(models.Model):
     title = models.CharField(max_length=100)
     date = models.DateTimeField()
     localisation = models.CharField(max_length=100)
+    def __str__(self):
+        return self.title
+
+class PendingEvents(models.Model):
+    title = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    localisation = models.CharField(max_length=100)
+    description = models.TextField("Description")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
+    pending = models.BooleanField(default=True)
+
+    def __str__( self ) :
+        return f"{self.title}/{self.localisation}/{self.date}"
