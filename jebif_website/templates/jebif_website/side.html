@@ -9,6 +9,9 @@
                 {% empty %}
                     <ul><li>Pas d'évènement à venir</li></ul>
                 {% endfor %}
+                <small class="text-muted">
+                    Vous souhaitez proposer un <a href="{% url 'event_form' %}" class="ml-2">évènement?</a>
+                </small>
             </div>
         </div>
 

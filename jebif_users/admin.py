@@ -4,14 +4,17 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib import messages
 from django.utils.translation import ngettext
 
-from .models import UserInfo #, MembershipInfoEmailChange
+from .models import UserInfo
 
 
 class UserInline( admin.StackedInline ) :
+	'''
+	
+	'''
 	model = UserInfo
 	can_delete = False
 	extra = 0
-	fields = ('firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership') #'is_active', 'user')
+	fields = ('firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership')
 
 
 class WantMemberFilter(admin.SimpleListFilter):
@@ -31,6 +34,7 @@ class WantMemberFilter(admin.SimpleListFilter):
 			return queryset.filter(userinfo__want_member=False)
 		return queryset
 	
+
 class IsDeletedFilter(admin.SimpleListFilter):
 	title = "Supprimé"
 	parameter_name = 'is_deleted'
@@ -47,6 +51,7 @@ class IsDeletedFilter(admin.SimpleListFilter):
 		if self.value() == 'no':
 			return queryset.filter(userinfo__is_deleted=False)
 		return queryset
+
 
 @admin.action(description="Renew or Grant Membership")
 def make_member(self, request, queryset):
@@ -136,9 +141,4 @@ class UserInfoAdmin(BaseUserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, UserInfoAdmin)
 
-
-#class MembershipInfoEmailChangeAdmin( admin.ModelAdmin ) :
-#	list_display = ('date', 'info', 'old_email')
-
-#admin.site.register(MembershipInfoEmailChange, MembershipInfoEmailChangeAdmin)
 

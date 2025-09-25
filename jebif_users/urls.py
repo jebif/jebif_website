@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import RegisterView
-from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import profile_view, request_membership, admin_home_view, button_admin
@@ -13,15 +12,7 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),
-    #FROM OLD REPO, NOT DONE
-    #path('subscription/', views.subscription, name="subscription"),
-    #path('subscription/ok/', TemplateView.as_view(template_name="membership/subscription-ok.html"), name="subscription_ok"),
-    #path('subscription/<int:info_id>/renew/', views.subscription_renew, name="subscription_renew"),       
-    # WARNING: in case info-id is not int, use re_path with regex "/(?P<info_id>\d+)/"
-    #path('subscription/<int:info_id>/update/', views.subscription_update, name="subscription_update"),
-    #path('subscription/me/update/', views.subscription_self_update, name="subscription_self_update"),
-    #path('subscription/update/', views.subscription_preupdate, name="subscription_preupdate"),
-    #FROM OLD REPO
+    #ADMIN IN SITE
     path('admin/export/csv/', views.admin_export_csv, name='admin_export_csv'),
     path('button_admin/', button_admin, name='button_admin'),
     path('admin_home/', admin_home_view, name='admin_home'),

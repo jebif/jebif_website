@@ -1,15 +1,15 @@
 {% extends 'jebif_website/base.html'%}
 
 {% block content %}
-
+    {% load custom_tags %}
 
     <h2>Résultats pour {{ election.label }}</h2>
 
     <p>{{election.intro}}</p>
 
-    <table>
+    <table class="my-table">
         <tr>
-            <th>Candidat</th>
+            <th>{{ candidat.label|contains:"vote"|yesno:"Vote,Candidat" }}</th>
             <th>Oui</th>
             <th>Non</th>
             <th>Abstention</th>
@@ -26,4 +26,21 @@
         {% endfor %}
     </table>
 
+
+
+<style>
+.my-table {
+    border-collapse: collapse; /* Supprime les doubles bordures */
+    width: 100%;               /* Table prend toute la largeur */
+}
+
+.my-table th, .my-table td {
+    border: 2px solid #333;   /* Couleur et épaisseur des bordures */
+    padding: 8px;              /* Espace à l'intérieur des cellules */
+    text-align: left;
+}
+</style>
+
 {% endblock content %}
+
+

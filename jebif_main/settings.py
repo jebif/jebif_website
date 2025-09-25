@@ -21,8 +21,7 @@ env = environ.Env(
 
 # Read .env file
 environ.Env.read_env()
-#environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-# may need some change: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
+# if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
@@ -30,15 +29,16 @@ SECRET_KEY = env("SECRET_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# For media (images)
-MEDIA_URL = '/media/'  
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Absolute path to the directory that holds media.
+MEDIA_ROOT = Path(str(BASE_DIR) + '/media')
+
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash if there is a path component (optional in other cases).
+MEDIA_URL = '/media/'
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'jebif_users',
     'jebif_election',
     'tinymce',          #requires: pip install django-tinymce
-    'crispy_forms',     #for nicer form
+    'crispy_forms',     #see requirement in README
     'crispy_bootstrap5',
 ]
 
@@ -146,6 +146,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Directory with static files 
+    os.path.join(BASE_DIR, 'jebif_website/static'),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -169,7 +176,6 @@ TINYMCE_DEFAULT_CONFIG = {
 
 # To change for Crispy, to make nicer forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
-
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
@@ -177,39 +183,25 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 LOGIN_REDIRECT_URL = '/'
 
 
-#### Settings for old
-ROOT_URL="app/"   
-HTTP_DOMAIN="http://jebif.fr"   #OK
-LOGIN_URL = f"/{ROOT_URL}accounts/login/"
-#LOGIN_REDIRECT_URL = f"/{ROOT_URL}membership/subscription/me/update/"
+#### Settings from old repos, for different aspects of the website 
+HTTP_DOMAIN="http://jebif.fr"
+ROOT_URL="/"
+LOGIN_URL = f"/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
-EMAIL_SUBJECT_PREFIX = "[JeBiF] " #OK
-SERVER_EMAIL="admin@jebif.fr"   #OK
+EMAIL_SUBJECT_PREFIX = "[JeBiF] "
+SERVER_EMAIL="admin@jebif.fr"   
 
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = Path(str(BASE_DIR) + '/media')
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/' + str(ROOT_URL) + 'media/'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Directory with static files 
-]
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
 
 #### Configuration for emails
 # Only for development
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
+
 # Only for prod (whole set, need modifications):
 #EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-#EMAIL_HOST = "smtp.gmail.com" #need changes
-#EMAIL_PORT = 587
+#EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
+#EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
 #EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = "tonmail@gmail.com"
-#EMAIL_HOST_PASSWORD = "ton_mot_de_passe_application"
-#DEFAULT_FROM_EMAIL = "admin@jebif.fr"
+#EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+#EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = "admin@jebif.fr"
+#ADMINS = os.environ.get("ADMINS")

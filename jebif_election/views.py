@@ -1,10 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
+from django.core.mail import send_mail
+from django.conf import settings
 
 from jebif_election.models import Election, Vote
 from jebif_election.forms import NewVoteForm, NewCandidateForm
+
+
+# Get emails from "Staff" users.
+User = get_user_model()
+staff_users = User.objects.filter(is_staff=True)
+emails = [user.email for user in staff_users if user.email]
 
 
 @login_required(login_url='login')
@@ -75,6 +84,19 @@ def candidate_to_election_view(request):
             candidat.user = request.user
             candidat.save()
             messages.success(request, "✅ Votre candidature a bien été enregistré. ")
+            send_mail(
+                subject="Nouvel Candidature proposée",
+                message=(
+                    f"Une nouvel candidature a été soumise.\n\n"
+                    f"Nom : {candidat.label}\n"
+                    f"Election : {candidat.election}\n"
+                    f"Description : {candidat.description}\n"
+                    f"Proposé par : {request.user.username}"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=emails,
+                fail_silently=False,
+            )
             return redirect("list_elections")
     else:
         form = NewCandidateForm(user=request.user, elections=elections)
