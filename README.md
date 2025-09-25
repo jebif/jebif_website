@@ -13,6 +13,8 @@ For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/g
 
 `pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
 
+`python -m pip install Pillow` for Pillow, used for Linked Images.
+
 ## Structure
 This website is made with 7 categories in mind (L'association,  Evènements, Bioinformatique, Vulgarisation, Liens utiles, Nous rejoindre, and Contact). Each category has differents sub-categories. In addition, there is also a home page (Accueil).
 

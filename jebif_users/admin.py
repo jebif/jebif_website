@@ -8,10 +8,13 @@ from .models import UserInfo #, MembershipInfoEmailChange
 
 
 class UserInline( admin.StackedInline ) :
+	'''
+	
+	'''
 	model = UserInfo
 	can_delete = False
 	extra = 0
-	fields = ('firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership') #'is_active', 'user')
+	fields = ('firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership')
 
 
 class WantMemberFilter(admin.SimpleListFilter):
