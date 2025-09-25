@@ -185,6 +185,7 @@ LOGIN_REDIRECT_URL = '/'
 
 #### Settings from old repos, for different aspects of the website 
 HTTP_DOMAIN="http://jebif.fr"
+ROOT_URL="/"
 LOGIN_URL = f"/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "

@@ -54,7 +54,7 @@ class UserModificationForm(forms.ModelForm):
 			user.save()
 		return user
 
-# Potential conflict here
+
 class UserInfoForm( ModelForm ) :
 	class Meta :
 		model = UserInfo
@@ -63,6 +63,7 @@ class UserInfoForm( ModelForm ) :
 						"city_name", "country",
 						"position", "motivation")
 		
+
 class UserInfoEmailForm( Form ) :
 	email = EmailField(required=True)
 

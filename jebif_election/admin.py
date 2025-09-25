@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib import messages
-from django.utils.timezone import now
+#from django.utils.timezone import now  # Unused for now, but could be changed
 
 import jebif_election.models as election
 import jebif_users.models as jebif_users

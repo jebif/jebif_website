@@ -54,7 +54,7 @@ class NewCandidateForm(forms.ModelForm):
         if elections is not None:
             self.fields["election"]= forms.ModelChoiceField(queryset=elections,
                                                             label="Candidater pour l'élection:",
-                                                            #widget=forms.RadioSelect,
+                                                            #widget=forms.RadioSelect,          # If we want to click one between many
                                                             required=True)
 
     def clean(self):

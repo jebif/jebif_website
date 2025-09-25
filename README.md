@@ -37,14 +37,20 @@ There is an Election class with a name (label) and a description (more fields to
 Made by Alexandre Lerévérend: ask for any question.
 
 ### TODO:
--cron in users is not correct yet, some unknown files are called (need to change links)
-
--navbar isn't aesthetic yet
-
--remove unwanted old code (currently commented) when sure it's not needed
+-cron in users is not correct yet, some unknown files are called (need to change links). Need many corrections.
 
 -check if emails are sent correctly ( maybe some changes in settings for that too, plus all the methods and functions in users)
 
 -add a page with a form to create an election (or not if admin interface is enough)
 
--add a page with a form to create an event (for everyuser? if yes, limit to only one pending event)
+-delete pendingEvents when it's validated (use atomic to not delete is the Event wasn't created)
+
+-check setting, maybe change timezone and stuff
+
+-develop more the admin interface for pendingEvents (name, etc)
+
+-create a dictionnary with categories as keys and subcategories as values to create the database instantly?
+
+-Finish the documentation if needed (only models done)
+
+-Finish this README.
