@@ -42,9 +42,9 @@ MEDIA_URL = '/media/'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
 
 
 # Application definition
@@ -193,15 +193,20 @@ SERVER_EMAIL="admin@jebif.fr"
 
 
 #### Configuration for emails
-# Only for development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
 
 # Only for prod (whole set, need modifications):
-#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-#EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
-#EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-#EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "admin@jebif.fr"
-#ADMINS = os.environ.get("ADMINS")
+ADMINS = os.environ.get("ADMINS")
+
+
+#### Security
+CSRF_COOKIE_SECURE=True
+SESSION_COOKIE_SECURE=True
+SECURE_SSL_REDIRECT = True
+#SECURE_HSTS_SECONDS=
