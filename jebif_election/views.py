@@ -76,7 +76,7 @@ def candidate_to_election_view(request):
         messages.error(request, "❌ Vous n'avez pas accès à ce formulaire.")
         return redirect("/")
 
-    elections = Election.objects.filter(waiting=True).order_by("-start_date")
+    elections = Election.objects.filter(waiting=True).order_by("-start_date")   #May need to check with the date too, in case of an error from the admin
     if request.method == 'POST':   
         form = NewCandidateForm(request.POST, user=request.user, elections=elections)
         if form.is_valid():
