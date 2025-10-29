@@ -18,13 +18,17 @@ class Command(BaseCommand):
             "Contact":[]
         }
 
+        count_cat = 0
+        count_sub = 0
         for cat_name, subcats in default_data.items():
-            category, created = Category.objects.get_or_create(name=cat_name, slug=slugify(cat_name).replace('-', '_'))
+            category, created = Category.objects.get_or_create(slug=slugify(cat_name).replace('-', '_'), defaults={"name": cat_name})
             if created:
                 self.stdout.write(f"✅ Category created : {cat_name}")
+                count_cat += 1
             for sub_name in subcats:
-                subcat, sub_created = Subcategory.objects.get_or_create(name=sub_name, slug=slugify(sub_name).replace('-', '_'), category = category)
+                subcat, sub_created = Subcategory.objects.get_or_create(slug=slugify(sub_name).replace('-', '_'), category = category, defaults={"name": sub_name})
                 if sub_created:
                     self.stdout.write(f"✅ Subcategory created : {sub_name}")
+                    count_sub += 1
 
-        self.stdout.write(self.style.SUCCESS("✅ Categories and Subcategories created with success !"))
+        self.stdout.write(self.style.SUCCESS(f"✅ {count_cat} Categories and {count_sub} Subcategories created with success !"))
