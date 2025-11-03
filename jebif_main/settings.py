@@ -41,10 +41,7 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["jebif.rumengol.net"]
 
 
 # Application definition
@@ -97,7 +94,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'jebif_main.wsgi.application'
-
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -144,7 +142,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/staticfiles/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # Directory with static files 
@@ -194,14 +192,14 @@ SERVER_EMAIL="admin@jebif.fr"
 
 #### Configuration for emails
 # Only for development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
 
 # Only for prod (whole set, need modifications):
-#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-#EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
-#EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-#EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "admin@jebif.fr"
 #ADMINS = os.environ.get("ADMINS")
