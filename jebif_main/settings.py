@@ -30,7 +30,7 @@ SECRET_KEY = env("SECRET_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Absolute path to the directory that holds media.
-MEDIA_ROOT = Path(str(BASE_DIR) + '/media')
+MEDIA_ROOT = '/home/rumengol/html/staticfiles/media'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -42,7 +42,7 @@ MEDIA_URL = '/media/'
 
 
 ALLOWED_HOSTS = ["jebif.rumengol.net"]
-
+CSRF_COOKIE_SECURE=True
 
 # Application definition
 
@@ -149,7 +149,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'jebif_website/static'),
 ]
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collecte des fichiers statiques en production
+STATIC_ROOT = "/home/rumengol/html/staticfiles"  # Collecte des fichiers statiques en production
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
