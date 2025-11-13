@@ -184,12 +184,12 @@ LOGIN_REDIRECT_URL = '/'
 
 
 #### Settings from old repos, for different aspects of the website 
-HTTP_DOMAIN="http://jebif.fr"
+HTTP_DOMAIN="http://jebif.rumengol.net"
 ROOT_URL="/"
 LOGIN_URL = f"/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "
-SERVER_EMAIL="admin@jebif.fr"   
+SERVER_EMAIL="admin@jebif.rumengol.net"   
 
 
 #### Configuration for emails
@@ -203,7 +203,7 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= 
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = "admin@jebif.fr"
+DEFAULT_FROM_EMAIL = "admin@jebif.rumengol.net"
 #ADMINS = os.environ.get("ADMINS")
 
 # Logging configuration
