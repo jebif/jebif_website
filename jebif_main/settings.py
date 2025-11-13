@@ -43,7 +43,7 @@ MEDIA_URL = '/media/'
 
 ALLOWED_HOSTS = ["jebif.rumengol.net"]
 CSRF_COOKIE_SECURE=True
-
+CSRF_TRUSTED_ORIGINS=["https://jebif.rumengol.net"]
 # Application definition
 
 INSTALLED_APPS = [
