@@ -45,7 +45,7 @@ ALLOWED_HOSTS = ["jebif.rumengol.net"]
 
 SITE_ID = 1
 CSRF_COOKIE_SECURE=True
-
+CSRF_TRUSTED_ORIGINS=["https://jebif.rumengol.net"]
 # Application definition
 
 INSTALLED_APPS = [
