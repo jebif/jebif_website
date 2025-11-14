@@ -38,13 +38,11 @@ def ask_membership():
 	msg_txt = f"""Bonjour,
 			Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
 			{admin_url}"""
-	#membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
 			
 	send_mail(
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
-        from_email=settings.SERVER_EMAIL,          
-        #[a[1] for a in membership_managers],
+        from_email=settings.SERVER_EMAIL,
 		recipient_list=emails,
         fail_silently=True
         )
@@ -53,7 +51,7 @@ def validate_membership( user ):
 	# Funtion to automatically send a mail when a membership is validated
 	username = user.username
 	msg_to = user.email
-	msg_from = "NO-REPLY@jebif.fr"
+	msg_from = "admin@jebif.rumengol.net"
 	msg_subj = f"Ton adhésion à JeBiF"
 	msg_txt = f"""
 Bonjour {username},
@@ -240,7 +238,19 @@ def profile_view(request):
 		info_form = UserInfoForm(instance=user_info)
 
 	return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
-    
+
+@login_required
+def test_mail(request):
+	send_mail(
+				subject=f"Test Mail",
+				message=f"""
+Test de mail, envoyé depuis le nouveau site web JeBiF
+""",
+				from_email=settings.SERVER_EMAIL,          
+				recipient_list=["rumengol@proton.me"],
+				fail_silently=True
+				)
+	return redirect('home')
 
 @login_required
 def request_membership(request):
@@ -287,7 +297,7 @@ def admin_subscription_accept( request, info_id ) :
 		info.init_date(info.inscription_date)
 		info.save()
 
-	msg_from = "NO-REPLY@jebif.fr"
+	msg_from = "admin@jebif.rumengol.net"
 	msg_to = [info.email]
 	msg_subj = "Bienvenue dans l'association JeBiF"
 	msg_txt = f"""

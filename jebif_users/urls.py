@@ -2,7 +2,7 @@ from django.urls import path
 from .views import RegisterView, VerifyView
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import profile_view, request_membership, admin_home_view, button_admin
+from .views import profile_view, request_membership, admin_home_view, button_admin, test_mail
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
@@ -25,5 +25,6 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='jebif_users/password_reset_confirm.html'),name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='jebif_users/password_reset_complete.html'),name='password_reset_complete'),
 
-
+    # TESTING
+    path("mail/", test_mail, name="test_mail")
 ]
