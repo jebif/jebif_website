@@ -45,7 +45,7 @@ def ask_membership():
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
         from_email=settings.SERVER_EMAIL,
-		recipient_list=emails,
+		recipient_list=["iscb.rsg.france@gmail.com"],
         fail_silently=True
         )
 
@@ -144,14 +144,14 @@ class AdhesionView(View):
     À bientôt,
     L’équipe JeBiF (RSG-France)
     """,
-                    from_email=f"association@jebif.fr",          
-                    recipient_list=emails,
-                    fail_silently=True
-                    )
-                return redirect('home')
-            else:
-                messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
-                return render(request, 'jebif_users/adhesion.html', {'user_form': user_form, 'info_form': info_form})
+			from_email=settings.SERVER_EMAIL,          
+			recipient_list=[user.email],
+			fail_silently=True
+			)
+		return redirect('home')
+	else:
+		messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+		return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
 
 def logout(request):
