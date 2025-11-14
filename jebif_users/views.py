@@ -34,14 +34,14 @@ def ask_membership():
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
         from_email=settings.SERVER_EMAIL,
-		recipient_list=emails,
+		recipient_list=["iscb.rsg.france@gmail.com"],
         fail_silently=True
         )
 
 def validate_membership( user ):
 	# Funtion to automatically send a mail when a membership is validated
 	username = user.username
-	msg_to = user.email
+	msg_to = [user.email]
 	msg_from = "admin@jebif.rumengol.net"
 	msg_subj = f"Ton adhésion à JeBiF"
 	msg_txt = f"""
@@ -93,8 +93,8 @@ le site de JeBiF, dans ta page Profile.
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """,
-				from_email=f"NO-REPLY@jebif.fr",          
-				recipient_list=emails,
+				from_email=settings.SERVER_EMAIL,          
+				recipient_list=[user.email],
 				fail_silently=True
 				)
 			return redirect('home')
