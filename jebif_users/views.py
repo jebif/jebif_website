@@ -38,16 +38,14 @@ def ask_membership():
     admin_url = f"http://{site.domain}/admin/auth/user/" 
 
     msg_txt = f"""Bonjour,
-            Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
-            {admin_url}"""
-    #membership_managers = getattr(settings, "MEMBERSHIP_MANAGERS", [])
-            
+			Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
+			{admin_url}"""
+			
     send_mail(
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
-        from_email=settings.SERVER_EMAIL,          
-        #[a[1] for a in membership_managers],
-        recipient_list=emails,
+        from_email=settings.SERVER_EMAIL,
+		recipient_list=emails,
         fail_silently=True
         )
 
@@ -315,6 +313,7 @@ def profile_view(request):
         messages.error(request, "⚠️ Vous n'avez pas confirmé votre compte et n'avez donc pas de profil (pour l'instant).")
         return redirect("home")
 
+
     remaining_time = (user_info.end_membership - today).days
     show_button_membership = (user_info.want_member == False) and ((remaining_time <= 30) or (user_info.is_member == False))
     
@@ -333,7 +332,6 @@ def profile_view(request):
         info_form = UserInfoForm(instance=user_info)
 
     return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
-    
 
 @login_required
 def request_membership(request):
@@ -385,6 +383,7 @@ def admin_subscription_accept( request, info_id ) :
         info.inscription_date = datetime.date.today()
         info.init_date(info.inscription_date)
         info.save()
+
 
     msg_from = "NO-REPLY@jebif.fr"
     msg_to = [info.email]
