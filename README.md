@@ -12,6 +12,7 @@ For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/g
 `pip install django-tinymce` for tinymce, used for writing the article in the admin page.
 
 `pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
+`pip install crispy-bootstrap5` is also needed.
 
 `python -m pip install Pillow` for Pillow, used for Linked Images.
 
