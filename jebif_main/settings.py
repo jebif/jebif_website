@@ -41,9 +41,9 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = ["jebif.rumengol.net"]
+ALLOWED_HOSTS = ["localhost","jebif.rumengol.net"]
 CSRF_COOKIE_SECURE=True
-CSRF_TRUSTED_ORIGINS=["https://jebif.rumengol.net"]
+CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net"]
 # Application definition
 
 INSTALLED_APPS = [
@@ -173,8 +173,8 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # To change for Crispy, to make nicer forms
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
-CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5']
+CRISPY_TEMPLATE_PACK = ['bootstrap5']
 
 
 # To redirect after connexion (maybe will be changed)
@@ -226,7 +226,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
