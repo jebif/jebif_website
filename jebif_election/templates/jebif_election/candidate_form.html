@@ -1,6 +1,6 @@
 {% extends 'jebif_website/base.html'%}
 
-{% load crispy_forms_tags %}
+
 
 {% block content %}
 
@@ -19,7 +19,7 @@
         <h1>Candidater à une élection</h1>
         <form method="post">
             {% csrf_token %}
-            {{ form |crispy }}
+            {{ form }}
             <button type="submit">Soumettre ma candidature</button>
         </form>
 

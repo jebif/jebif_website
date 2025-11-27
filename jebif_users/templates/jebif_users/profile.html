@@ -1,6 +1,6 @@
 {% extends 'jebif_website/base.html'%}
 
-{% load crispy_forms_tags %}
+
 
 {% block content %}
     <div class="container">
@@ -9,10 +9,10 @@
             {% csrf_token %}
             
             <h4>Informations de connexion</h4>
-            {{ user_form|crispy }}
+            {{ user_form }}
 
             <h4>Informations personnelles</h4>
-            {{ info_form|crispy }}
+            {{ info_form }}
             <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
         </form>
         {% if show_button_membership %}
