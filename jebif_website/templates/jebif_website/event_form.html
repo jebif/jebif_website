@@ -1,13 +1,12 @@
 {% extends 'jebif_website/base.html'%}
 
-{% load crispy_forms_tags %}
 
 {% block content %}
     {% if user.is_authenticated and user.info.is_member %}
         <h1>Proposer un évènement</h1>
         <form method="post">
             {% csrf_token %}
-            {{ form |crispy }}
+            {{ form }}
             <button type="submit">Proposer mon évènement.</button>
         </form>
     {% else %}

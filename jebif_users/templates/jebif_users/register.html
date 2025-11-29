@@ -1,6 +1,6 @@
 {% extends 'jebif_website/base.html'%}
 
-{% load crispy_forms_tags %}
+
 
 {% block content %}
 
@@ -9,8 +9,8 @@
             </h1>
             <form method="POST">
                 {% csrf_token %}
-                {{ user_form | crispy }}
-                {{ info_form | crispy }}
+                {{ user_form }}
+                {{ info_form }}
                 <button class="btn btn-secondary" type="submit">
                     Enregistrement
                 </button>

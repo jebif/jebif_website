@@ -6,8 +6,7 @@ from .views import profile_view, request_membership, admin_home_view, button_adm
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
-    path('logout/', views.logout, name='logout'),
-    path('button_logout/', views.logout, name='button_logout'),
+    path('button_logout/', auth_views.LogoutView.as_view(next_page='home'), name='button_logout'),
     path('register/', RegisterView.as_view(), name='register'),
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),
