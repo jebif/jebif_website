@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from tinymce.models import HTMLField    #looks like an error but in fact works
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -126,9 +127,17 @@ class Article(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
-    subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     slug = models.SlugField(unique=True, blank=True)
+
+    def clean(self):
+        # Check is the Subcategory is from the correct Category
+        if self.subcategory and self.subcategory.category != self.category:
+            raise ValidationError({
+                "subcategory": f"La sous-catégorie « {self.subcategory} » n'appartient pas à la catégorie « {self.category} »."
+            })
+
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -139,6 +148,7 @@ class Article(models.Model):
                 slug = f"{base}_{i}"
                 i += 1
             self.slug = slug
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
