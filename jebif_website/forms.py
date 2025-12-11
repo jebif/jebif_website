@@ -1,6 +1,6 @@
 from django import forms
 
-from jebif_website.models import PendingEvents
+from jebif_website.models import PendingEvents, Article
 
 import datetime
 
@@ -40,3 +40,15 @@ class NewEventForm(forms.ModelForm):
 
         return cleaned_data
     
+
+#Class to be able to change the presentation in the Administration
+class ArticleAdminForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Replace queryset by a custom ModelChoiceField 
+        self.fields["subcategory"].label_from_instance = lambda obj: f"{obj.name} ({obj.category.name})"

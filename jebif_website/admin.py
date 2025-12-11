@@ -1,9 +1,10 @@
 from django.contrib import admin, messages
 from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, EventsDates
+from .forms import ArticleAdminForm
 
 import jebif_website.models as website
 
-admin.site.register(Article)
+#admin.site.register(Article)
 admin.site.register(Category)
 admin.site.register(Subcategory)
 admin.site.register(WebPlatforms)
@@ -51,3 +52,9 @@ class PendingEventAdmin(admin.ModelAdmin):
   
 
 admin.site.register(website.PendingEvents,PendingEventAdmin)
+
+
+class ArticleAdmin(admin.ModelAdmin):
+    form = ArticleAdminForm
+
+admin.site.register(Article, ArticleAdmin)

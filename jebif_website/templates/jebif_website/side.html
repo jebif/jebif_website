@@ -64,7 +64,7 @@
                 <h5 class="card-title">Articles récents</h5>
                 <ul>
                     {% for article in recent_articles %}
-                        <li><a href="#" style="color: #436d8f;"> {{article.title}} </a> </li>
+                        <li><a href="article/{{article.slug}}/" style="color: #436d8f;"> {{article.title}} </a> </li>
                     {% empty %}
                         <li>Aucun article publié</li>
                     {% endfor %}
