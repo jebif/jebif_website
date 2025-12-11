@@ -175,7 +175,7 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # To change for Crispy, to make nicer forms
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5']
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
