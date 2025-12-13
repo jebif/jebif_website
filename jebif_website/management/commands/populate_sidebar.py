@@ -30,7 +30,7 @@ class Command(BaseCommand):
             ["ISCB-SC", "images/linked_images/iscb_student_logo.png","http://www.iscbsc.org/"],
             ["GDR BIMMM", "images/linked_images/gdrbim.jpg","http://www.gdr-bim.cnrs.fr/"],
             ["SFBI", "images/linked_images/SFBI_logo_without_text.png","http://www.sfbi.fr/"],
-            ["Bioinfo-fr", "images/linked_images/bioinfo-fr.png","http://bioinfo-fr.net/"]
+            ["Bioinfo-fr", "images/linked_images/bioinfo-fr.png","http://bioinfo-fr.net/"],
             ["Bioinformations", "images/linked_images/bioinformations.png","http://www.bioinformations.fr/"]
         ]
 
