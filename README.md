@@ -19,7 +19,10 @@ For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/g
 ## Structure
 This website is made with 7 categories in mind (L'association,  Evènements, Bioinformatique, Vulgarisation, Liens utiles, Nous rejoindre, and Contact). Each category has differents sub-categories. In addition, there is also a home page (Accueil).
 
-Article is a class made to write articles, one for each category and subcategory (but it is designed to be able to present more). Only the home page (Accueil) has more articles, which could be considered "News".
+Article is a class made to write articles, one for each category and subcategory (but it is designed to be able to present more). Only the home page (Accueil) has more articles, which could be considered "News". There is three cases:
+* No Category: Articles will be present in the "Accueil" page.
+* Category (only): Article will be present when you check the Category page.
+* Category with Subcategory: Article will be present when you check the related Subcategory of a Category. When you create such article, make sure you choose a SubCategory belong to the Category you have chosen (else there will be an error).
 
 Each page (Accueil, Category and SubCategory) present a Navigation bar (nav.html) to navigate in the website, and a side bar (side.html) to present different informations (next events, social medias, useful link, irc, recent articles, RSS and the Licence). Under the navbar is the banner of the website.
 
@@ -54,8 +57,8 @@ Made by Alexandre Lerévérend: ask for any question.
 
 -develop more the admin interface for pendingEvents (name, etc)
 
--create a dictionnary with categories as keys and subcategories as values to create the database instantly?
-
 -Finish the documentation if needed (only models done)
 
 -Finish this README.
+
+-Re-establish crispyform (the errors aren't breaking anything it seems.)
