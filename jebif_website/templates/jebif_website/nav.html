@@ -18,8 +18,8 @@
             <ul class="navbar-nav w-100 align-items-center">
 
                 {% for category in categories_nav %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" 
+                    <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
+                        <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
                             href="{% url 'articles_per_category' category.slug %}" 
                             role="button" 
                             data-bs-toggle="dropdown-toggle" 
