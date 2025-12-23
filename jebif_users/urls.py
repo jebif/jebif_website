@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView
+from .views import RegisterView, VerifyView
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import profile_view, request_membership, admin_home_view, button_admin
@@ -8,6 +8,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
     path('button_logout/', auth_views.LogoutView.as_view(next_page='home'), name='button_logout'),
     path('register/', RegisterView.as_view(), name='register'),
+    path("verify/<uid>/<token>", VerifyView.as_view(), name="verify"),
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),

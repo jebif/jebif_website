@@ -1,8 +1,12 @@
 from django.views import View
 
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import LogoutView, LoginView
 from django.contrib.auth.decorators import login_required, user_passes_test
+
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -11,6 +15,8 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, 
 
 import csv
 import datetime
+import json
+from pathlib import Path
 
 from .models import *
 from .forms import *
@@ -20,6 +26,9 @@ User = get_user_model()
 staff_users = User.objects.filter(is_staff=True)
 emails = [user.email for user in staff_users if user.email]
 
+fixtures_file = Path(__file__).parent.joinpath("fixtures.json")
+with open(fixtures_file,"r") as f:
+	old_accounts = json.load(f)
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
@@ -64,45 +73,42 @@ class RegisterView(View):
 	#View to create a new User
 	def get(self, request):
 		user_form = UserRegisterForm()
-		info_form = UserInfoForm()
-		return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
+		return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
 	def post(self, request):
+		
 		user_form = UserRegisterForm(request.POST)
-		info_form = UserInfoForm(request.POST)
-
-		if user_form.is_valid() and info_form.is_valid():
+		
+		if user_form.is_valid():
 			with atomic() :
 				#creation of User
 				user = user_form.save()
-				#creation of UserInfo
-				user_info = info_form.save(commit=False)
-				user_info.user = user
-				user_info.email = user.email
-				user_info.save()
-				if (user_info.want_member == True) and (settings.DEBUG == False):
-					ask_membership()
-				messages.success(request, "✅ Ton compte a été créé, tu peux te connecter avec ton username et ton mot de passe.")
+				messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscrpition.")
+			
+			uid = urlsafe_base64_encode(force_bytes(user.pk))
+			token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
+
 			send_mail(
 				subject=f"Creation de compte JeBiF",
 				message=f"""
 Bonjour {user.username},
 
-Ton compte sur le site de l'association JeBiF vient d'être créé.
-Tu peux demander ton adhésion à l'association JeBiF en te rendant sur
-le site de JeBiF, dans ta page Profile.
+Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
+Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://jebif.fr/users/verify/{uid}/{token}
+
+Tu pourras ensuite compléter ton profil. Si tu as déjà une adhésion en cours, celle-ci sera conservée.
 
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """,
-				from_email=f"NO-REPLY@jebif.fr",          
+				from_email=f"Association@jebif.fr",          
 				recipient_list=emails,
 				fail_silently=True
 				)
 			return redirect('home')
 		else:
-			messages.error(request, "⚠️Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
-			return render(request, 'jebif_users/register.html', {'user_form': user_form, 'info_form': info_form})
+			messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+			return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
 
 def logout(request):
@@ -118,13 +124,104 @@ def login(request):
     else:
         return render(request, 'jebif_users/login.html')
 
+class VerifyView(View):
+	def get(self, request, uid, token):
+		try:
+			uid = force_str(urlsafe_base64_decode(uid))
+			user = User.objects.get(pk=uid)
+		except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+			user = None
+			uid = 0
+		
+		token_part = token.split("-")
+		valid_uid = token_part[0] == uid
+		valid_timestamp = (datetime.datetime.now().timestamp() - float(token_part[1])) <= datetime.timedelta(minutes=20).seconds
+		if user is not None and valid_uid and valid_timestamp:
+			info_form = UserInfoForm()
+			existing_account = False
+
+			for account in old_accounts:
+				if account["email"] == user.email:
+					inscription = datetime.date.fromisoformat(account["inscription_date"])
+					end = inscription.replace(year=2026)
+
+					user_info = UserInfo(
+						user=user,
+						email=account["email"],
+						firstname=account["firstname"],
+						lastname=account["lastname"],
+						laboratory=account["laboratory_name"],
+						city_name=account["laboratory_city"],
+						city_cp=account["laboratory_cp"],
+						country=account["laboratory_country"],
+						position=account["position"],
+						motivation=account["motivation"],
+						inscription_date=account["inscription_date"],
+						is_member=account["active"],
+						want_member=False,
+						is_deleted=account["deleted"],
+						begin_membership=inscription,
+						end_membership=end
+					)
+					if not UserInfo.objects.filter(user=user).exists():
+						user_info.save()
+						user.info = user_info
+						user.save()
+
+					info_form = UserInfoForm(instance=user_info)
+					existing_account = True
+			return render(request, "jebif_users/fill_info.html", {"existing_account":existing_account, "info_form":info_form})
+		else:
+			messages.error(request, "⚠️ Bad verification link or it has expired. Please try again.")
+			return redirect("home")
+
+	def post(self, request, uid, token):
+		uid = force_str(urlsafe_base64_decode(uid))
+		user = User.objects.get(pk=uid)
+		existing_account = False
+
+		if hasattr(user, "info"):
+			user_info = user.info
+			info_form = UserInfoForm(request.POST, instance=user_info)
+			existing_account = True
+		else:
+			info_form = UserInfoForm(request.POST)
+
+		if info_form.is_valid():
+			with atomic():
+				user_info = info_form.save(commit=False)
+				if not existing_account:
+					user_info.user = user
+					user_info.email = user.email
+					user_info.want_member = True
+				else:
+					user_info.want_member = False
+				user_info.save()
+
+				user.info = user_info
+				user.save()
+
+				if user_info.want_member:
+					bonus = "Ton adhésion est en cours d'évaluation par le Conseil d'Administration."
+				else:
+					bonus = "Ton adhésion a été transférée depuis l'ancien site."
+				messages.success(request, f"✅ Tes informations ont été créées. {bonus}")
+
+			auth_login(request, user)
+			return redirect("home")
+		else:
+			messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+			return render(request, "jebif_users/fill_info.html", {"existing_account":existing_account, "info_form":info_form})
+
 
 @login_required
 def profile_view(request):
 	#Function for the profile page, to modify info
 	user = request.user
-	user_info = request.user.info  # get UserInfo linked to User
+
 	today = datetime.date.today()
+
+	user_info = request.user.info  # get UserInfo linked to User
 	remaining_time = (user_info.end_membership - today).days
 	show_button_membership = (user_info.want_member == False) and ((remaining_time <= 30) or (user_info.is_member == False))
 	
@@ -140,7 +237,7 @@ def profile_view(request):
 			return redirect('profile')
 	else:
 		user_form = UserModificationForm(instance=user)		#retrieve the known info
-		info_form = UserInfoForm(instance=user_info) 
+		info_form = UserInfoForm(instance=user_info)
 
 	return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
     

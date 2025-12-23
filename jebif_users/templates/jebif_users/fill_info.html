@@ -1,0 +1,26 @@
+{% extends 'jebif_website/base.html'%}
+
+{% block title %}
+Complétion du compte
+{% endblock title %}
+
+{% block content %}
+
+            <h1>
+                Complétion des informations du compte
+            </h1>
+            <p>Adresse e-mail validée ! Complète les informations suivantes pour demander l'adhésion et compléter ton compte.</p>
+            {% if existing_account %}
+                <p>Adhésion existante trouvée ! Vérifie que les information sont correctes.</p>
+            {% endif %}
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ info_form }}
+                    
+                    <br>
+                    <button class="btn btn-secondary" type="submit">
+                        Confirmer {% if not existing_account %}et adhérer{% endif %}
+                    </button>
+                </form>
+
+{% endblock content %}
