@@ -6,7 +6,7 @@
 
                 {% if article %}
                         <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
-                        <div>{{article.content|safe}}</div>
+                        <div>{{article.content | safe | truncatewords:100 }}</div>
                         <hr class="my-4"> 
                 {% endif %}
 

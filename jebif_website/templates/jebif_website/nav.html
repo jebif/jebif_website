@@ -28,7 +28,7 @@
                         </a>
                         {% if category.subcategory.all %}
                             <ul class="dropdown-menu">
-                                {% for subcat in category.subcategory.all %}
+                                {% for subcat in category.subcategory.all|dictsort:"rank" %}
                                     <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
                                 {% endfor %}
                             </ul>

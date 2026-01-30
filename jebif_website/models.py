@@ -62,6 +62,7 @@ class Subcategory(models.Model):
     name = models.CharField(max_length=30)
     slug = models.SlugField(unique=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, related_name="subcategory")
+    rank = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.slug:

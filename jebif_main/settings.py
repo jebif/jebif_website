@@ -164,11 +164,11 @@ TINYMCE_DEFAULT_CONFIG = {
     "height": 500,
     "width": "100%",
     "menubar": True, 
-    "plugins": "image code emoticons",
+    "plugins": "link image code emoticons",
     "toolbar": "undo redo | formatselect | bold italic backcolor | \
                 alignleft aligncenter alignright alignjustify | \
                 bullist numlist outdent indent | removeformat | \
-                image | emoticons | help",
+                link image | emoticons | help",
     "automatic_uploads": True,
     "file_picker_types": "image",
     "images_upload_url": "/upload_image/",  # a Django view to upload images

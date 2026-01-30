@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         default_data = {
-            "L'association": ["Conseil d'Administration", "Le Concept de RSG", "Nos Projets", "Répartition des Membres", "Les Statuts", "Mentions Légales"],  
+            "L'association": ["Conseil d'Administration", "Le Concept de RSG", "Nos Projets", "Répartition des Membres", "Les Statuts", "Règlement Intérieur", "Mentions Légales"],  
             "Evènements": ["JeBiF Worksop @JOBIM", "Ptit Déjs JeBiF", "JeBiF Pubs", "TOBI: Tables Ouvertes en BioInfo"], 
             "Bioinformatique": ["Les Formations", "Trouver un Emploi en BioInformatique", "Associations et Groupes de Rencontre Francophones"],
             "Vulgarisation": ["BioInfuse", "Ateliers de Vulgarisation", "Activités Périscolaires"],
@@ -25,8 +25,8 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"✅ Category created : {cat_name}")
                 count_cat += 1
-            for sub_name in subcats:
-                subcat, sub_created = Subcategory.objects.get_or_create(slug=slugify(sub_name).replace('-', '_'), category = category, defaults={"name": sub_name})
+            for i, sub_name in enumerate(subcats):
+                subcat, sub_created = Subcategory.objects.get_or_create(slug=slugify(sub_name).replace('-', '_'), category = category, rank=i, defaults={"name": sub_name})
                 if sub_created:
                     self.stdout.write(f"✅ Subcategory created : {sub_name}")
                     count_sub += 1
