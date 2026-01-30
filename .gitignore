@@ -2,3 +2,5 @@ __pycache__
 db.sqlite3
 debug.log
 venv
+jebif_env
+fixtures.json

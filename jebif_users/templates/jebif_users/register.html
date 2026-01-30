@@ -1,6 +1,8 @@
 {% extends 'jebif_website/base.html'%}
 
-
+{% block title %}
+Création de compte JeBiF
+{% endblock title %}
 
 {% block content %}
 
@@ -10,7 +12,11 @@
             <form method="POST">
                 {% csrf_token %}
                 {{ user_form }}
+
+                
                 {{ info_form }}
+                    
+                    
                 <button class="btn btn-secondary" type="submit">
                     Enregistrement
                 </button>
@@ -20,5 +26,4 @@
                     Vous avez déjà un compte? <a href="{% url 'login' %}" class="ml-2">Connexion</a>
                 </small>
             </div>
-
 {% endblock content %}
