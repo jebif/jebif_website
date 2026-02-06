@@ -1,0 +1,7 @@
+.confirm_deletion {
+    display:none;
+}
+
+.delete_account:active + .confirm_deletion {
+    display:block;
+}
