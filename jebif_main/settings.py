@@ -164,11 +164,13 @@ TINYMCE_DEFAULT_CONFIG = {
     "height": 500,
     "width": "100%",
     "menubar": True, 
-    "plugins": "link image code emoticons",
-    "toolbar": "undo redo | formatselect | bold italic backcolor | \
+    "plugins": "link image code emoticons lists advlist insertdatetime media codesample \
+                importcss preview table wordcount",
+    "toolbar": "preview | undo redo | formatselect | bold italic backcolor | \
                 alignleft aligncenter alignright alignjustify | \
                 bullist numlist outdent indent | removeformat | \
-                link image | emoticons | help",
+                link image code codesample media | bullist numlist | \
+                emoticons | table tablecellprops tableprops | insertdatetime help",
     "automatic_uploads": True,
     "file_picker_types": "image",
     "images_upload_url": "/upload_image/",  # a Django view to upload images
