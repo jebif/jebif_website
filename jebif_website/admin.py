@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, EventsDates
+from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, Events
 from .forms import ArticleAdminForm
 
 import jebif_website.models as website
@@ -8,7 +8,6 @@ import jebif_website.models as website
 admin.site.register(Category)
 admin.site.register(Subcategory)
 admin.site.register(WebPlatforms)
-admin.site.register(EventsDates)
 
 
 @admin.register(LinkedImage)
@@ -17,7 +16,7 @@ class LinkedImageAdmin(admin.ModelAdmin):
 
 
 class PendingEventAdmin(admin.ModelAdmin):
-    model=website.PendingEvents
+    model=website.Events
     list_display = ('user', 'title', 'pending',)
     actions = ['validate_event', 'unvalidate_event',]
 
@@ -49,10 +48,7 @@ class PendingEventAdmin(admin.ModelAdmin):
                 messages.error(request, f"{pending.title} was already removed from the pending events, it can't be unvalidated again.")
         messages.success(request, f"{count} Event(s) was(were) marked as not pending.")
 
-  
-
-admin.site.register(website.PendingEvents,PendingEventAdmin)
-
+admin.site.register(Events)
 
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm

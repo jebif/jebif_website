@@ -207,35 +207,9 @@ class WebPlatforms(models.Model):
     url = models.URLField(blank=True)
 
     def __str__(self):
-        return self.title
-    
+        return self.title    
 
-class EventsDates(models.Model):
-    '''
-	Events promoted by JeBiF.
-	...
-
-	Attributes
-	----------
-    title : str
-        Name of the Event
-
-    date : date object
-        When is the opening of the event
-
-    localisation : str
-        Where is happening the event
-
-    Methods
-	-------
-    '''
-    title = models.CharField(max_length=100)
-    date = models.DateTimeField()
-    localisation = models.CharField(max_length=100)
-    def __str__(self):
-        return self.title
-
-class PendingEvents(models.Model):
+class Events(models.Model):
     '''
 	Proposition of Events for JeBiF to promote.
 	...
@@ -266,8 +240,34 @@ class PendingEvents(models.Model):
     date = models.DateTimeField()
     localisation = models.CharField(max_length=100)
     description = models.TextField("Description")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
+    organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
     pending = models.BooleanField(default=True)
 
     def __str__( self ) :
-        return f"{self.title}/{self.localisation}/{self.date}"
+        return f"{self.title} ({self.localisation}) - {self.date}"
+    
+class Participant(models.Model):
+    """
+    Participant of an Event
+
+    Attributes
+    ----------
+    first_name : str
+        First name of the participant
+    
+    last_name : str
+        Last name of the participant
+
+    email : str
+        Email of the participant
+
+    user: User
+        Jebif User corresponding to the participant, if registered while connected
+    """
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    event = models.ForeignKey(Events, on_delete=models.CASCADE)
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
