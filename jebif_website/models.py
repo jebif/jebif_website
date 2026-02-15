@@ -242,6 +242,7 @@ class Events(models.Model):
     description = models.TextField("Description")
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
     pending = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
 
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
@@ -269,5 +270,6 @@ class Participant(models.Model):
     email = models.EmailField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

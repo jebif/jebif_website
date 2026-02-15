@@ -32,7 +32,7 @@ class NewEventForm(forms.ModelForm):
         # Check if another pending event from the user already exist
         exists = Events.objects.filter(
                 organiser=self.user
-            ).exists()
+            ).filter(pending=True).exists()
         if exists:
                 raise forms.ValidationError(
                     "❌ Vous avez déjà un évènement en cours de validation."
@@ -56,7 +56,7 @@ class ArticleAdminForm(forms.ModelForm):
 class ParticipantForm(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ("firstname", "lastname", "email")
+        fields = ("first_name", "last_name", "email")
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)

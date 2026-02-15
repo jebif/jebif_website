@@ -4,7 +4,8 @@
                 <h5 class="card-title">Prochains Evènements</h5>
                 {% for event in events_sidebar %}
                     <ul>
-                        <li>{{ event.title }} : {{event.date}} à {{event.localisation}}</li>
+                        <li><a href="{% url 'event' event.id %}">{{ event.title }}</a> : {{event.date}} à {{event.localisation}}</li>
+                        <a href="{% url 'event_register' event.id %}">S'inscrire</a>
                     </ul>
                 {% empty %}
                     <ul><li>Pas d'évènement à venir</li></ul>

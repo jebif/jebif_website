@@ -9,8 +9,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 
-from jebif_website.models import Article, Category, Subcategory
-from jebif_website.forms import NewEventForm
+from jebif_website.models import Article, Category, Subcategory, Events
+from jebif_website.forms import NewEventForm, ParticipantForm
     
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -75,6 +75,9 @@ class ArticleView(DetailView):
     template_name = 'jebif_website/article.html'
     context_object_name = "article"
 
+def get_event_view(request, event_id):
+    event = get_object_or_404(Events, id=event_id)
+    return render(request, 'jebif_website/event.html', {'event': event})
 
 # To upload images in the Editor (for articles)
 @csrf_exempt
@@ -96,7 +99,7 @@ def propose_event_view(request):
         form = NewEventForm(request.POST, user=request.user)
         if form.is_valid():
             pending_event = form.save(commit=False)
-            pending_event.user = request.user
+            pending_event.organiser = request.user
             pending_event.save()
             messages.success(request, "✅ Votre proposition d'évènement a bien été enregistré. ")
             #send mail to staff
@@ -120,3 +123,18 @@ def propose_event_view(request):
         form = NewEventForm(user=request.user)
 
     return render(request, "jebif_website/event_form.html", {"form": form,})
+
+def event_register_view(request, event_id):
+    if request.method == "POST":
+        form = ParticipantForm(request.POST, user=request.user)
+
+        if form.is_valid():
+            participant = form.save(commit=False)
+            participant.user = request.user
+            participant.event = get_object_or_404(Events, pk=event_id)
+            participant.save()
+            return redirect("/")
+    else:
+        form = ParticipantForm(user=request.user)
+
+    return render(request, "jebif_website/register_form.html", {"form": form,})
