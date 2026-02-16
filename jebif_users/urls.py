@@ -2,7 +2,7 @@ from django.urls import path
 from .views import RegisterView, VerifyView
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import profile_view, request_membership, admin_home_view, button_admin, test_mail
+from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, test_mail
 
 urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
@@ -12,6 +12,7 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),
+    path('delete_account/', delete_account, name="delete_account"),
     #ADMIN IN SITE
     path('admin/export/csv/', views.admin_export_csv, name='admin_export_csv'),
     path('button_admin/', button_admin, name='button_admin'),

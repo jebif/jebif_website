@@ -32,5 +32,13 @@
             <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
 
         {% endif %}
+
+        <a href="#" class="delete_account btn" style="background: red">
+            Supprimer le compte
+        </a>
+        <div class="confirm_deletion">
+            <a href="{% url 'delete_account' %}" class="confirm btn" style="background:green">Supprimer</a>
+            <a href="#" class="cancel btn" style="background: red">Annuler</a>
+        </div>
     </div>
 {% endblock content %}

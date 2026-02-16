@@ -262,7 +262,13 @@ def request_membership(request):
 		if settings.DEBUG == False:
 			ask_membership() #function to send a mail to admin
 	return redirect('profile')
-      
+
+@login_required
+def delete_account(request):
+	user = request.user
+	user.delete()
+	logout(user)
+	return redirect("home")
 
 def is_admin() :
 	def validate( u ) :

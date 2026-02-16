@@ -1,4 +1,4 @@
-from .models import Category, LinkedImage, EventsDates, WebPlatforms, Article
+from .models import Category, LinkedImage, Events, WebPlatforms, Article
 from django.utils import timezone
 
 def categories_processor(request):
@@ -13,7 +13,7 @@ def images_sidebar_processor(request):
 
 def events_sidebar_processor(request):
     return {
-        'events_sidebar': EventsDates.objects.filter(date__gte=timezone.now()).order_by('date')
+        'events_sidebar': Events.objects.filter(active=True).filter(date__gte=timezone.now()).order_by('date')
     }
 
 def platforms_sidebar_processor(request):

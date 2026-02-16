@@ -41,9 +41,11 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = ["localhost","jebif.rumengol.net"]
+ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr"]
 CSRF_COOKIE_SECURE=True
-CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net"]
+CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr"]
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -130,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr_fr'
 
 TIME_ZONE = 'UTC'
 
@@ -162,11 +164,13 @@ TINYMCE_DEFAULT_CONFIG = {
     "height": 500,
     "width": "100%",
     "menubar": True, 
-    "plugins": "link image code emoticons",
-    "toolbar": "undo redo | formatselect | bold italic backcolor | \
+    "plugins": "link image code emoticons lists advlist insertdatetime media codesample \
+                importcss preview table wordcount",
+    "toolbar": "preview | undo redo | formatselect | bold italic backcolor | \
                 alignleft aligncenter alignright alignjustify | \
                 bullist numlist outdent indent | removeformat | \
-                link image | emoticons | help",
+                link image code codesample media | bullist numlist | \
+                emoticons | table tablecellprops tableprops | insertdatetime help",
     "automatic_uploads": True,
     "file_picker_types": "image",
     "images_upload_url": "/upload_image/",  # a Django view to upload images

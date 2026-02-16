@@ -1,13 +1,13 @@
 from django import forms
 
-from jebif_website.models import PendingEvents, Article
+from jebif_website.models import Events, Participant, Article
 
 import datetime
 
 class NewEventForm(forms.ModelForm):
     #Form for users to propose events
     class Meta:
-        model = PendingEvents
+        model = Events
         fields = ["title", "date", "localisation", "description",]
 
     title = forms.CharField(label="Le nom de votre évènement", max_length=50)
@@ -30,12 +30,12 @@ class NewEventForm(forms.ModelForm):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
         
         # Check if another pending event from the user already exist
-        exists = PendingEvents.objects.filter(
-                user=self.user
-            ).exists()
+        exists = Events.objects.filter(
+                organiser=self.user
+            ).filter(pending=True).exists()
         if exists:
                 raise forms.ValidationError(
-                    "❌ Vous avez déjà proposé un évènement."
+                    "❌ Vous avez déjà un évènement en cours de validation."
                 )
 
         return cleaned_data
@@ -52,3 +52,19 @@ class ArticleAdminForm(forms.ModelForm):
 
         # Replace queryset by a custom ModelChoiceField 
         self.fields["subcategory"].label_from_instance = lambda obj: f"{obj.name} ({obj.category.name})"
+
+class ParticipantForm(forms.ModelForm):
+    class Meta:
+        model = Participant
+        fields = ("first_name", "last_name", "email")
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.user:
+            cleaned_data["user"] = self.user
+            
+        return cleaned_data

@@ -1,0 +1,29 @@
+{% extends 'jebif_website/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <h2>{{ event.title }}</h2>
+        <h3>Le {{ event.date }} - {{ event.localisation }}</h3>
+        <p>{{ event.description }}</p>
+
+        <a href="{% url 'event_register' event.id %}" class="btn btn-primary">S'inscrire à l'évènement</a>
+
+        {% if request.user.is_superuser and event.participant_set.all %}
+            <h3>Liste des participants inscrits</h3>
+            <table>
+                <tr>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Mail</th>
+                </tr>
+                {% for participant in event.participant_set.all %}
+                    <tr>
+                        <td>{{ participant.first_name }}</td>
+                        <td>{{ participant.last_name }}</td>
+                        <td>{{ participant.email }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

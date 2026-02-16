@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, EventsDates
+from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, Events, Participant
 from .forms import ArticleAdminForm
 
 import jebif_website.models as website
@@ -8,8 +8,7 @@ import jebif_website.models as website
 admin.site.register(Category)
 admin.site.register(Subcategory)
 admin.site.register(WebPlatforms)
-admin.site.register(EventsDates)
-
+admin.site.register(Participant)
 
 @admin.register(LinkedImage)
 class LinkedImageAdmin(admin.ModelAdmin):
@@ -17,28 +16,25 @@ class LinkedImageAdmin(admin.ModelAdmin):
 
 
 class PendingEventAdmin(admin.ModelAdmin):
-    model=website.PendingEvents
-    list_display = ('user', 'title', 'pending',)
-    actions = ['validate_event', 'unvalidate_event',]
+    model=website.Events
+    list_display = ('organiser', 'title', 'pending',)
+    actions = ['validate_event', 'reject_event',]
 
     @admin.action(description="Validate event")
     def validate_event(self, request, queryset):
         count = 0
         for pending in queryset:
             if pending.pending==True:
-                website.EventsDates.objects.create(title=pending.title,
-                                                    date=pending.date,
-                                                    localisation=pending.localisation,
-                                                    )
                 pending.pending=False
+                pending.active=True
                 pending.save()
                 count += 1
             else:
                 messages.error(request, f"{pending.title} was removed from the pending events, it can't be validated.")
         messages.success(request, f"{count} Events validated.")
 
-    @admin.action(description="Unvalidate event")
-    def unvalidate_event(self, request, queryset):
+    @admin.action(description="Reject event")
+    def reject_event(self, request, queryset):
         count = 0
         for pending in queryset:
             if pending.pending==True:
@@ -49,10 +45,7 @@ class PendingEventAdmin(admin.ModelAdmin):
                 messages.error(request, f"{pending.title} was already removed from the pending events, it can't be unvalidated again.")
         messages.success(request, f"{count} Event(s) was(were) marked as not pending.")
 
-  
-
-admin.site.register(website.PendingEvents,PendingEventAdmin)
-
+admin.site.register(Events, PendingEventAdmin)
 
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
