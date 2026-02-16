@@ -228,11 +228,7 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'console': {
-<<<<<<< HEAD
             'level': 'WARNING',
-=======
-            'level': 'DEBUG',
->>>>>>> main
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
