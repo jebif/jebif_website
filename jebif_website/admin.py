@@ -8,12 +8,14 @@ import jebif_website.models as website
 admin.site.register(Category)
 admin.site.register(Subcategory)
 admin.site.register(WebPlatforms)
-admin.site.register(Participant)
 
 @admin.register(LinkedImage)
 class LinkedImageAdmin(admin.ModelAdmin):
     list_display = ('title', 'url', 'image')
 
+@admin.register(Participant)
+class ParticipantAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email', 'event')
 
 class PendingEventAdmin(admin.ModelAdmin):
     model=website.Events
