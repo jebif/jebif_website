@@ -45,7 +45,6 @@ ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr"]
 CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -229,7 +228,11 @@ LOGGING = {
             'formatter': 'verbose',
         },
         'console': {
+<<<<<<< HEAD
             'level': 'WARNING',
+=======
+            'level': 'DEBUG',
+>>>>>>> main
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
