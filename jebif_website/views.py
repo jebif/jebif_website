@@ -100,6 +100,9 @@ def propose_event_view(request):
         if form.is_valid():
             pending_event = form.save(commit=False)
             pending_event.organiser = request.user
+            if request.user.is_admin:
+                pending_event.pending = False
+                pending_event.active = True
             pending_event.save()
             messages.success(request, "✅ Votre proposition d'évènement a bien été enregistré. ")
             #send mail to staff
