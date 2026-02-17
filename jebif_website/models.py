@@ -265,9 +265,9 @@ class Participant(models.Model):
     user: User
         Jebif User corresponding to the participant, if registered while connected
     """
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField()
+    first_name = models.CharField("Prénom", max_length=100)
+    last_name = models.CharField("Nom",max_length=100)
+    email = models.EmailField("Addresse mail")
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     
