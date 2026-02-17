@@ -5,3 +5,17 @@
 .delete_account:active + .confirm_deletion {
     display:block;
 }
+
+.announce-box {
+    position:absolute;
+    top:0;
+    left:0;
+    transform:translateX(10%);
+    width: 80%;
+    padding:20px;
+    margin-bottom:30px;
+    background:rgb(168, 255, 168);
+    border: 1px dotted green;
+    text-align:center;
+    font-size:small;
+}
