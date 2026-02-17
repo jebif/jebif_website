@@ -11,10 +11,10 @@ class NewEventForm(forms.ModelForm):
         fields = ["title", "date", "localisation", "description",]
 
     title = forms.CharField(label="Le nom de votre évènement", max_length=50)
-    date = forms.DateField(label="Date de l'évènement", 
-                           initial=datetime.date.today,
-                           widget=forms.DateInput(attrs={"type": "date"}),
-                           input_formats=["%Y-%m-%d"],  # format requested by input[type=date]
+    date = forms.DateTimeField(label="Date de l'évènement", 
+                           initial=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                           widget=forms.DateTimeInput(attrs={"type": "datetime"}),
+                           input_formats=["%Y-%m-%d %H:%M"],  # format requested by input[type=date]
                            )
     localisation = forms.CharField(label="Lieu de l'évènement")
     description = forms.CharField(label="Description (500 caractères max)", max_length=500)

@@ -136,7 +136,8 @@ def event_register_view(request, event_id):
                 participant.user = request.user
             participant.event = get_object_or_404(Events, pk=event_id)
             participant.save()
-            return redirect("/")
+            messages.success(request, f"✅ Votre inscription a l'évènement {event.title} a bien été prise en compte. ")
+            return redirect(f"/event/{event.id}")
     else:
         form = ParticipantForm(user=request.user)
 
