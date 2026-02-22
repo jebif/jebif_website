@@ -36,6 +36,12 @@
                     </li>
                 {% endfor %}
 
+                {% if not request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a href="{% url 'adhesion' %}" class="nav-link" role="button">Nous rejoindre</a>
+                    </li>
+                {% endif %}
+
                 {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown ms-auto" id="menu-dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="menuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #3c72c4; color: white;">
