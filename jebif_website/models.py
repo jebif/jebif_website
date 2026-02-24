@@ -241,6 +241,7 @@ class Events(models.Model):
     localisation = models.CharField(max_length=100)
     description = models.TextField("Description")
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
+    max_participants = models.IntegerField("Nombre maximum de participants (-1 pour participants illimités)", default=-1)
     pending = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 
