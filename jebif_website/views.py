@@ -91,7 +91,7 @@ def upload_image(request):
 
 @login_required(login_url='login')
 def propose_event_view(request):
-    if not request.user.info.is_member:
+    if not (request.user.info.is_member or request.user.is_superuser):
         messages.error(request, "❌ Vous n'avez pas accès à ce formulaire.")
         return redirect("/")
 
@@ -100,7 +100,7 @@ def propose_event_view(request):
         if form.is_valid():
             pending_event = form.save(commit=False)
             pending_event.organiser = request.user
-            if request.user.is_admin:
+            if request.user.is_superuser:
                 pending_event.pending = False
                 pending_event.active = True
             pending_event.save()
@@ -142,6 +142,18 @@ def event_register_view(request, event_id):
             messages.success(request, f"✅ Votre inscription a l'évènement {event.title} a bien été prise en compte. ")
             return redirect(f"/event/{event.id}")
     else:
-        form = ParticipantForm(user=request.user)
+        if not request.user.is_anonymous:
+            user_info = request.user.info
+            initial_data = {
+                "first_name": user_info.firstname,
+                "last_name": user_info.lastname,
+                "email": user_info.email
+            }
+            form = ParticipantForm(
+                user = request.user,
+                initial=initial_data
+            )
+        else:
+            form = ParticipantForm(user=request.user)
 
     return render(request, "jebif_website/register_form.html", {"form": form, 'event': event})
