@@ -1,5 +1,5 @@
 {% extends 'jebif_website/base.html'%}
-
+{% load crispy_forms_tags %}
 {% block title %}
 Création de compte JeBiF
 {% endblock title %}
@@ -11,10 +11,10 @@ Création de compte JeBiF
             </h1>
             <form method="POST">
                 {% csrf_token %}
-                {{ user_form }}
+                {{ user_form | crispy }}
 
                 
-                {{ info_form }}
+                {{ info_form | crispy }}
                     
                     
                 <button class="btn btn-secondary" type="submit">
