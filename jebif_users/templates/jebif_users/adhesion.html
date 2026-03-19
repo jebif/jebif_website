@@ -1,6 +1,6 @@
 {% extends 'jebif_website/base.html'%}
 
-
+{% load crispy_forms_tags %}
 
 {% block content %}
     <div class="container">
@@ -40,8 +40,8 @@
         <form method="post">
             {% csrf_token %}
 
-            {{ user_form }}
-            {{ info_form }}
+            {{ user_form | crispy }}
+            {{ info_form | crispy }}
 
             <input type="submit" class="btn btn-primary mt-3" value="Adhérer">
         </form>
