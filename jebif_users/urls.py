@@ -2,10 +2,10 @@ from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account
+from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView
 
 urlpatterns = [
-    path('login/', auth_views.LoginView.as_view(template_name='jebif_users/login.html'), name='login'),
+    path('login/', CustomLoginView.as_view(next_page='home'), name='login'),
     path('button_logout/', auth_views.LogoutView.as_view(next_page='home'), name='button_logout'),
     path('register/', RegisterView.as_view(), name='register'),
     path('adhesion/', AdhesionView.as_view(), name='adhesion'),
