@@ -216,7 +216,8 @@ class VerifyView(View):
                         is_deleted=account["deleted"],
                         begin_membership=inscription,
                         end_membership=end,
-                        verified=True
+                        verified=True,
+                        know_from="Ancien site" #alright like this?
                     )
 
             if user_info is None:
