@@ -1,0 +1,21 @@
+{% extends 'jebif_website/base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+        <h1>Contact</h1>
+        <h4>Adresse de l’association :</h4>
+
+        <p>4 Rue des Arènes
+        75005 Paris</p>
+        <h4>Contact par Facebook @JeBiF.RSG.France</h4>
+        <h4>Contact par Twitter <a href="https://twitter.com/JeBiF">@JeBiF</a></h4>
+        <h4>Contacter par courriel :</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ form | crispy }}
+            <button type="submit">Envoyer</button>
+        </form>
+
+{% endblock %}

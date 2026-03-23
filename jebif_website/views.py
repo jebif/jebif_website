@@ -8,9 +8,10 @@ from django.core.files.storage import default_storage
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 
 from jebif_website.models import Article, Category, Subcategory, Events
-from jebif_website.forms import NewEventForm, ParticipantForm
+from jebif_website.forms import NewEventForm, ParticipantForm, ContactForm
     
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -157,3 +158,38 @@ def event_register_view(request, event_id):
             form = ParticipantForm(user=request.user)
 
     return render(request, "jebif_website/register_form.html", {"form": form, 'event': event})
+
+# For the contact page
+def contact_view(request):
+    ip = request.META.get('REMOTE_ADDR')
+
+    if request.method == 'POST':
+        #Limit to avoid spam
+        if cache.get(ip):
+            messages.error(request, "Trop de tentatives, réessayez plus tard.")
+            return redirect('contact_form')
+
+        form = ContactForm(request.POST)
+
+        if form.is_valid():
+            cache.set(ip, True, timeout=60)  # 1 request/minute
+
+            send_mail(
+                subject=f"{settings.EMAIL_SUBJECT_PREFIX}Message de {form.cleaned_data['name']} depuis le site",
+                message=f"""
+                Nom: {form.cleaned_data['name']},
+                Email: {form.cleaned_data['email']},
+                Site Web: {form.cleaned_data.get('website', 'Non renseigné')}
+                Commentaire: {form.cleaned_data['commentary']}""",
+                from_email=form.cleaned_data['email'],
+                recipient_list=[f"{settings.SERVER_EMAIL}"],
+            )
+
+            messages.success(request, "Votre message a bien été envoyé ✅")
+            return redirect('contact_form')
+
+    else:
+        form = ContactForm()
+
+    return render(request, 'jebif_website/contact_form.html', {'form': form})
+

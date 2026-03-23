@@ -14,7 +14,6 @@ class Command(BaseCommand):
             "Bioinformatique": ["Les Formations", "Trouver un Emploi en BioInformatique", "Associations et Groupes de Rencontre Francophones"],
             "Vulgarisation": ["Matériel à disposition", "BioInfuse", "Ateliers de Vulgarisation", "Activités Périscolaires"],
             "Liens utiles":["La SFBI", "BioInfo-fr.net", "BioInformations", "Le GDR BIM", "La CJC"], 
-            "Contact":[]
         }
 
         count_cat = 0
