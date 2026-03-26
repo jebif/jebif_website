@@ -3,7 +3,7 @@ from django.views import View
 from django.contrib import messages
 from django.contrib.sites.models import Site
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.views import LogoutView, LoginView
+from django.contrib.auth.views import LogoutView, LoginView, PasswordResetView
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.utils.encoding import force_bytes, force_str
@@ -171,6 +171,26 @@ class CustomLoginView(LoginView):
             return super().form_valid(form)
         else:
             form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu.")
+            return self.form_invalid(form)
+
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'jebif_users/password_reset.html'
+    email_template_name = 'jebif_users/password_reset_email.html'
+    subject_template_name = 'jebif_users/password_reset_subject.txt'
+    success_url = '/users/password_reset/done/'
+    extra_email_context = {
+        "site_name": "[JeBiF]",
+    }
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        user = User.objects.filter(email=email).first()
+        if user:
+            messages.success(self.request, "✅ Si un compte existe avec cet email, un message a été envoyé.")
+            return super().form_valid(form)
+        else:
+            form.add_error(None, "Il n'existe pas de compte avec cette adresse email.")
             return self.form_invalid(form)
 
 

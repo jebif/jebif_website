@@ -77,10 +77,10 @@ class ContactForm(forms.Form):
     commentary = forms.CharField(widget=forms.Textarea, label="Commentaire")
 
     # Anti-bot field (honeypot)
-    website = forms.CharField(required=False, widget=forms.HiddenInput)
+    website_pot = forms.CharField(required=False, widget=forms.HiddenInput)
 
     def clean_website(self):
-        data = self.cleaned_data['website']
+        data = self.cleaned_data['website_pot']
         if data:
             raise forms.ValidationError("Spam détecté.")
         return data
