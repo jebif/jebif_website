@@ -14,7 +14,11 @@ class UserInline( admin.StackedInline ) :
 	model = UserInfo
 	can_delete = False
 	extra = 0
+<<<<<<< HEAD
 	fields = ('firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership', 'know_from')
+=======
+	fields = ('firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership')
+>>>>>>> c0e76eb (Dev alex local: Modifications to forms and to login (#3))
 
 
 class WantMemberFilter(admin.SimpleListFilter):
