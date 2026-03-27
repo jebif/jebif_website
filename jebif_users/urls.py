@@ -2,11 +2,15 @@ from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
 from . import views
+<<<<<<< dev_alex_local
 <<<<<<< HEAD
 from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView, CustomPasswordResetView
 =======
 from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView
 >>>>>>> c0e76eb (Dev alex local: Modifications to forms and to login (#3))
+=======
+from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView
+>>>>>>> main
 
 urlpatterns = [
     path('login/', CustomLoginView.as_view(next_page='home'), name='login'),
