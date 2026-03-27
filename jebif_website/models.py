@@ -131,6 +131,7 @@ class Article(models.Model):
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     slug = models.SlugField(unique=True, blank=True)
+    pdf = models.FileField(upload_to='articles_pdfs/', null=True, blank=True,verbose_name="Document PDF")
 
     def clean(self):
         # Check is the Subcategory is from the correct Category
