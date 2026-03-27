@@ -173,8 +173,6 @@ class CustomLoginView(LoginView):
             form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu.")
             return self.form_invalid(form)
 
-<<<<<<< dev_alex_local
-<<<<<<< HEAD
 
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'jebif_users/password_reset.html'
@@ -195,10 +193,6 @@ class CustomPasswordResetView(PasswordResetView):
             form.add_error(None, "Il n'existe pas de compte avec cette adresse email.")
             return self.form_invalid(form)
 
-=======
->>>>>>> c0e76eb (Dev alex local: Modifications to forms and to login (#3))
-=======
->>>>>>> main
 
 
 class VerifyView(View):
