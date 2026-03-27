@@ -68,3 +68,19 @@ class ParticipantForm(forms.ModelForm):
             cleaned_data["user"] = self.user
             
         return cleaned_data
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(label="Nom", max_length=50)
+    email = forms.EmailField(label="Adresse mail de contact")
+    website = forms.CharField(label="Site web", required=False, max_length=50)
+    commentary = forms.CharField(widget=forms.Textarea, label="Commentaire")
+
+    # Anti-bot field (honeypot)
+    website_pot = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    def clean_website(self):
+        data = self.cleaned_data['website_pot']
+        if data:
+            raise forms.ValidationError("Spam détecté.")
+        return data

@@ -7,6 +7,11 @@
                     <div>
                         <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
                         {{article.content|safe}}
+                        {% if article.pdf %}
+                            <a href="{{ article.pdf.url }}" target="_blank">
+                                Voir le PDF
+                            </a>
+                        {% endif %}
                         <hr class="my-4"> 
                     </div>
                     

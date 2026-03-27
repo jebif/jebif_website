@@ -109,6 +109,12 @@ class UserInfo( models.Model ) :
     end_membership : str (date)
         End of the User's membership.
 
+    know_from : str
+        From what/where the user know JeBiF
+    
+    verified : bool
+        Has the user verified is account by following the email after is inscription
+
         
     Methods
     -------
@@ -159,6 +165,7 @@ class UserInfo( models.Model ) :
     city_cp = models.CharField("Code Postal", max_length=7)
     country = models.CharField("Pays", max_length=75)
     position = models.CharField("Poste actuel", max_length=75)
+    know_from = models.TextField("Comment avez vous connu JeBiF ?", blank=True, max_length=200)
     motivation = models.TextField("Motivation pour adhérer", blank=True)
 
     inscription_date = models.DateField(default=datetime.date.today)
