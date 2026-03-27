@@ -162,12 +162,18 @@ def logout(request):
     else:
         return render(request, 'jebif_users/logout.html')
     
+class CustomLoginView(LoginView):
+    template_name = 'jebif_users/login.html'
 
-def login(request):
-    if request.method == 'POST':
-        return LoginView.as_view(next_page='home')(request)
-    else:
-        return render(request, 'jebif_users/login.html')
+    def form_valid(self, form):
+        user = form.get_user()
+        if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
+            return super().form_valid(form)
+        else:
+            form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu.")
+            return self.form_invalid(form)
+
+
 
 class VerifyView(View):
     def get(self, request, uid, token, adhere=False):
@@ -282,7 +288,12 @@ def profile_view(request):
 
     today = datetime.date.today()
 
-    user_info = request.user.info  # get UserInfo linked to User
+    try:
+        user_info = request.user.info  # get UserInfo linked to User
+    except(TypeError, ValueError, OverflowError, User.info.RelatedObjectDoesNotExist):
+        messages.error(request, "⚠️ Vous n'avez pas confirmé votre compte et n'avez donc pas de profil (pour l'instant).")
+        return redirect("home")
+
     remaining_time = (user_info.end_membership - today).days
     show_button_membership = (user_info.want_member == False) and ((remaining_time <= 30) or (user_info.is_member == False))
     

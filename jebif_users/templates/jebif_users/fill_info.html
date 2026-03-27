@@ -1,5 +1,7 @@
 {% extends 'jebif_website/base.html'%}
 
+{% load crispy_forms_tags %}
+
 {% block title %}
 Complétion du compte
 {% endblock title %}
@@ -15,7 +17,7 @@ Complétion du compte
             {% endif %}
                 <form method="POST">
                     {% csrf_token %}
-                    {{ info_form }}
+                    {{ info_form | crispy }}
                     
                     <br>
                     <button class="btn btn-secondary" type="submit">
