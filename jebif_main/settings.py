@@ -41,9 +41,9 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr"]
+ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
 CSRF_COOKIE_SECURE=True
-CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr"]
+CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
 
 # Application definition
 
@@ -184,12 +184,12 @@ LOGIN_REDIRECT_URL = '/'
 
 
 #### Settings from old repos, for different aspects of the website 
-HTTP_DOMAIN="http://jebif.rumengol.net"
+HTTP_DOMAIN="http://beta.jebif.fr"
 ROOT_URL="/"
 LOGIN_URL = f"/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "
-SERVER_EMAIL="admin@jebif.rumengol.net"   
+SERVER_EMAIL="admin@beta.jebif.fr"   
 
 
 #### Configuration for emails
@@ -203,7 +203,7 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= 
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = "admin@jebif.rumengol.net"
+DEFAULT_FROM_EMAIL = "admin@beta.jebif.fr"
 #ADMINS = os.environ.get("ADMINS")
 
 # Logging configuration
