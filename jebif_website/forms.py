@@ -73,7 +73,6 @@ class ParticipantForm(forms.ModelForm):
 class ContactForm(forms.Form):
     name = forms.CharField(label="Nom", max_length=50)
     email = forms.EmailField(label="Adresse mail de contact")
-    website = forms.CharField(label="Site web", required=False, max_length=50)
     commentary = forms.CharField(widget=forms.Textarea, label="Commentaire")
 
     # Anti-bot field (honeypot)
