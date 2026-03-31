@@ -26,7 +26,7 @@ class NewEventForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         # Check if user is a member
-        if (self.user and not self.user.info.is_member) or (not self.user):
+        if (self.user and not (self.user.info.is_member or self.user.is_superuser)) or (not self.user):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
         
         # Check if another pending event from the user already exist
@@ -68,3 +68,18 @@ class ParticipantForm(forms.ModelForm):
             cleaned_data["user"] = self.user
             
         return cleaned_data
+
+
+class ContactForm(forms.Form):
+    name = forms.CharField(label="Nom", max_length=50)
+    email = forms.EmailField(label="Adresse mail de contact")
+    commentary = forms.CharField(widget=forms.Textarea, label="Commentaire")
+
+    # Anti-bot field (honeypot)
+    website_pot = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    def clean_website(self):
+        data = self.cleaned_data['website_pot']
+        if data:
+            raise forms.ValidationError("Spam détecté.")
+        return data

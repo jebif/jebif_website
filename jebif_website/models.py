@@ -131,6 +131,7 @@ class Article(models.Model):
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     slug = models.SlugField(unique=True, blank=True)
+    pdf = models.FileField(upload_to='articles_pdfs/', null=True, blank=True,verbose_name="Document PDF")
 
     def clean(self):
         # Check is the Subcategory is from the correct Category
@@ -241,6 +242,7 @@ class Events(models.Model):
     localisation = models.CharField(max_length=100)
     description = models.TextField("Description")
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
+    max_participants = models.IntegerField("Nombre maximum de participants (-1 pour participants illimités)", default=-1)
     pending = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 

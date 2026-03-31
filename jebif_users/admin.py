@@ -14,7 +14,7 @@ class UserInline( admin.StackedInline ) :
 	model = UserInfo
 	can_delete = False
 	extra = 0
-	fields = ('firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership')
+	fields = ('firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership', 'know_from')
 
 
 class WantMemberFilter(admin.SimpleListFilter):
@@ -92,7 +92,7 @@ def admin_mark_deleted(self, request, queryset):
 
 class UserInfoAdmin(BaseUserAdmin):
 	inlines = [UserInline]
-	list_display = ('username', 'firstname', 'lastname', 'email', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
+	list_display = ('username', 'firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
 	list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
 	search_fields = ('firstname', 'lastname', 'email', 'user__username')
 	actions = [make_member, admin_mark_deleted] #not usefull if not defined outside and before?
@@ -132,6 +132,9 @@ class UserInfoAdmin(BaseUserAdmin):
 
 	def end_membership(self, obj):
 		return obj.info.end_membership
+
+	def verified(self, obj):
+		return obj.info.verified
 	
 	
 

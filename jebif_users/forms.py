@@ -61,7 +61,8 @@ class UserInfoForm( ModelForm ) :
 		fields = ("firstname", "lastname", 
 						"laboratory", "city_cp",
 						"city_name", "country",
-						"position", "motivation")
+						"position", "motivation",
+						"know_from")
 		
 
 class UserInfoEmailForm( Form ) :

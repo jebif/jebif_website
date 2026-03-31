@@ -9,13 +9,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         default_data = {
-            "L'association": ["Conseil d'Administration", "Le Concept de RSG", "Nos Projets", "Répartition des Membres", "Les Statuts", "Règlement Intérieur", "Mentions Légales"],  
+            "L'association": ["Conseil d'Administration", "Le Concept de RSG", "Nos Projets", "Répartition des Membres", "Les Statuts", "Règlement Intérieur", "Mentions Légales", "Comptes rendus de CA"],  
             "Evènements": ["JeBiF Worksop @JOBIM", "Ptit Déjs JeBiF", "JeBiF Pubs", "TOBI: Tables Ouvertes en BioInfo"], 
             "Bioinformatique": ["Les Formations", "Trouver un Emploi en BioInformatique", "Associations et Groupes de Rencontre Francophones"],
-            "Vulgarisation": ["BioInfuse", "Ateliers de Vulgarisation", "Activités Périscolaires"],
+            "Vulgarisation": ["Matériel à disposition", "BioInfuse", "Ateliers de Vulgarisation", "Activités Périscolaires"],
             "Liens utiles":["La SFBI", "BioInfo-fr.net", "BioInformations", "Le GDR BIM", "La CJC"], 
-            "Nous rejoindre":[],
-            "Contact":[]
         }
 
         count_cat = 0

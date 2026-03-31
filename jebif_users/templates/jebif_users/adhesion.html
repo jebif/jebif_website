@@ -1,0 +1,49 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <div class="container">
+        <h2>Nous rejoindre</h2>
+
+        <p>Vous êtes intéressé(e) par l’association et vous voulez en faire partie ?</p>
+
+        <p>Rien de plus simple, il suffit de demander l’adhésion.</p>
+
+        <h3>Pourquoi adhérer ?</h3>
+
+        <p>Adhérer à l’association c’est</p>
+    
+        <ul>
+            <li>Faire partie de notre liste de diffusion et être informé de notre actualité et de nos actions.</li>
+            <li>Soutenir les divers projets et événements.</li>
+            <li>Pouvoir prendre part à la vie et aux décisions de l’association.</li>
+            <li>Pouvoir s’investir et collaborer dans une communauté de jeunes bioinformaticiens.</li>
+            <li>Avoir la possibilité de profiter de certains projets (bourses de voyage, rencontres entre RSG, …).</li>
+        </ul>
+
+        <h3>Comment adhérer ?</h3>
+
+        <p>En adhérant, vous créez également un compte sur ce site. Vous pouvez
+            à tout moment gérer votre adhésion et accéder aux fonctionnalité
+            adhérentes grâce à ce compte.</p>
+
+        <p>L'adhésion est gratuite et soumise à acceptation du conseil d'administration.
+            Elle ne sera active qu'à partir de la prochaine réunion du CA, pour une durée d'un an renouvelable.</p>
+
+        <p>Si vous aviez déjà une adhésion en cours, celle-ci sera transférée automatiquement en 
+            <a href="{% url 'register' %}">créant un compte</a>.
+        </p>
+
+        <p>Pour adhérer, remplissez le formulaire ci-dessous.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+
+            {{ user_form | crispy }}
+            {{ info_form | crispy }}
+
+            <input type="submit" class="btn btn-primary mt-3" value="Adhérer">
+        </form>
+    </div>
+{% endblock content %}

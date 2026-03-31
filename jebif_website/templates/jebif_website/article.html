@@ -5,6 +5,11 @@
                 <div>
                     <h3>{{article.title}}</h3>
                     {{article.content|safe}}
+                    {% if article.pdf %}
+                        <a href="{{ article.pdf.url }}" target="_blank">
+                            Voir le PDF
+                        </a>
+                    {% endif %}
                 </div>
 
 {% endblock %}

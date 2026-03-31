@@ -36,6 +36,16 @@
                     </li>
                 {% endfor %}
 
+                {% if not request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a href="{% url 'adhesion' %}" class="nav-link" role="button">Nous rejoindre</a>
+                    </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a href="{% url 'contact_form' %}" class="nav-link" role="button">Contact</a>
+                </li>
+
                 {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown ms-auto" id="menu-dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="menuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #3c72c4; color: white;">
@@ -72,15 +82,24 @@
 
 
 <style>
-/* Change default behavior for the click */
-.nav-item.dropdown:not(#menu-dropdown):hover .dropdown-menu {
-    display: block;
+
+/* Hover uniquement sur les appareils avec souris */
+@media (hover: hover) {
+    .nav-item.dropdown:not(#menu-dropdown):hover .dropdown-menu {
+        display: block;
+    }
 }
 
-/* Optionnal : Avoid menu movement */
+/* Évite le déplacement du menu */
 .nav-item.dropdown .dropdown-menu {
     margin-top: 0;
 }
+
+/* open menu by clic (for mobile) */
+.nav-item.dropdown.open .dropdown-menu {
+    display: block;
+}
+
 
 /* règle spécifique au dropdown du menu */
 #menu-dropdown .dropdown-menu {
@@ -96,3 +115,35 @@
 }
 
 </style>
+
+<script>
+
+document.querySelectorAll(".nav-item.dropdown > a").forEach(link => {
+    link.addEventListener("click", function(e) {
+
+        if (window.matchMedia("(hover: none)").matches) {
+            const parent = this.parentElement;
+
+            if (!parent.classList.contains("open")) {
+                e.preventDefault();
+
+                // close other open menus
+                document.querySelectorAll(".nav-item.dropdown.open")
+                    .forEach(el => el.classList.remove("open"));
+
+                parent.classList.add("open");
+            }
+        }
+
+    });
+});
+
+// close the menu if outside clic
+document.addEventListener("click", function(e) {
+    if (!e.target.closest(".nav-item.dropdown")) {
+        document.querySelectorAll(".nav-item.dropdown.open")
+            .forEach(el => el.classList.remove("open"));
+    }
+});
+
+</script>

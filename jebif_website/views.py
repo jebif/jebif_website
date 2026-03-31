@@ -8,9 +8,10 @@ from django.core.files.storage import default_storage
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 
 from jebif_website.models import Article, Category, Subcategory, Events
-from jebif_website.forms import NewEventForm, ParticipantForm
+from jebif_website.forms import NewEventForm, ParticipantForm, ContactForm
     
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -91,7 +92,7 @@ def upload_image(request):
 
 @login_required(login_url='login')
 def propose_event_view(request):
-    if not request.user.info.is_member:
+    if not (request.user.info.is_member or request.user.is_superuser):
         messages.error(request, "❌ Vous n'avez pas accès à ce formulaire.")
         return redirect("/")
 
@@ -100,6 +101,9 @@ def propose_event_view(request):
         if form.is_valid():
             pending_event = form.save(commit=False)
             pending_event.organiser = request.user
+            if request.user.is_superuser:
+                pending_event.pending = False
+                pending_event.active = True
             pending_event.save()
             messages.success(request, "✅ Votre proposition d'évènement a bien été enregistré. ")
             #send mail to staff
@@ -139,6 +143,53 @@ def event_register_view(request, event_id):
             messages.success(request, f"✅ Votre inscription a l'évènement {event.title} a bien été prise en compte. ")
             return redirect(f"/event/{event.id}")
     else:
-        form = ParticipantForm(user=request.user)
+        if not request.user.is_anonymous:
+            user_info = request.user.info
+            initial_data = {
+                "first_name": user_info.firstname,
+                "last_name": user_info.lastname,
+                "email": user_info.email
+            }
+            form = ParticipantForm(
+                user = request.user,
+                initial=initial_data
+            )
+        else:
+            form = ParticipantForm(user=request.user)
 
     return render(request, "jebif_website/register_form.html", {"form": form, 'event': event})
+
+# For the contact page
+def contact_view(request):
+    ip = request.META.get('REMOTE_ADDR')
+
+    if request.method == 'POST':
+        #Limit to avoid spam
+        if cache.get(ip):
+            messages.error(request, "Trop de tentatives, réessayez plus tard.")
+            return redirect('contact_form')
+
+        form = ContactForm(request.POST)
+
+        if form.is_valid():
+            cache.set(ip, True, timeout=60)  # 1 request/minute
+
+            send_mail(
+                subject=f"{settings.EMAIL_SUBJECT_PREFIX}Message de {form.cleaned_data['name']} depuis le site",
+                message=f"""
+                Nom: {form.cleaned_data['name']},
+                Email: {form.cleaned_data['email']},
+                Site Web: {form.cleaned_data.get('website', 'Non renseigné')}
+                Commentaire: {form.cleaned_data['commentary']}""",
+                from_email=form.cleaned_data['email'],
+                recipient_list=[f"{settings.SERVER_EMAIL}"],
+            )
+
+            messages.success(request, "Votre message a bien été envoyé ✅")
+            return redirect('contact_form')
+
+    else:
+        form = ContactForm()
+
+    return render(request, 'jebif_website/contact_form.html', {'form': form})
+

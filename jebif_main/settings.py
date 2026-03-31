@@ -40,14 +40,17 @@ MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-
 ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
 CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
 
+SITE_ID = 1
+CSRF_COOKIE_SECURE=True
+CSRF_TRUSTED_ORIGINS=["https://jebif.rumengol.net"]
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -185,6 +188,7 @@ LOGIN_REDIRECT_URL = '/'
 
 #### Settings from old repos, for different aspects of the website 
 HTTP_DOMAIN="http://beta.jebif.fr"
+
 ROOT_URL="/"
 LOGIN_URL = f"/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
@@ -203,7 +207,9 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= 
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
 DEFAULT_FROM_EMAIL = "admin@beta.jebif.fr"
+
 #ADMINS = os.environ.get("ADMINS")
 
 # Logging configuration
@@ -229,6 +235,7 @@ LOGGING = {
         },
         'console': {
             'level': 'WARNING',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
