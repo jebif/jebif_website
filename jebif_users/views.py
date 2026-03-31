@@ -38,14 +38,14 @@ def ask_membership():
     admin_url = f"http://{site.domain}/admin/auth/user/" 
 
     msg_txt = f"""Bonjour,
-			Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
-			{admin_url}"""
-			
+            Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
+            {admin_url}"""
+            
     send_mail(
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
         from_email=settings.SERVER_EMAIL,
-		recipient_list=["iscb.rsg.france@gmail.com"],
+        recipient_list=["iscb.rsg.france@gmail.com"],
         fail_silently=True
         )
 
@@ -101,14 +101,14 @@ Tu pourras ensuite compléter ton profil. Si tu as déjà une adhésion en cours
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """,
-				from_email=settings.SERVER_EMAIL,          
-				recipient_list=[user.email],
-				fail_silently=True
-				)
-			return redirect('home')
-		else:
-			messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
-			return render(request, 'jebif_users/register.html', {'user_form': user_form})
+                from_email=settings.SERVER_EMAIL,          
+                recipient_list=[user.email],
+                fail_silently=True
+                )
+            return redirect('home')
+        else:
+            messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+            return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
 class AdhesionView(View):
     def get(self, request):
@@ -117,22 +117,21 @@ class AdhesionView(View):
         return render(request, 'jebif_users/adhesion.html', {'user_form': user_form, 'info_form': info_form})
     
     def post(self, request):
+        user_form = UserRegisterForm(request.POST)
+        info_form = UserInfoForm(request.POST)
+        
+        if user_form.is_valid() and info_form.is_valid():
+            with atomic() :
+                #creation of User
+                user = user_form.save()
+                messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
             
-            user_form = UserRegisterForm(request.POST)
-            info_form = UserInfoForm(request.POST)
-            
-            if user_form.is_valid() and info_form.is_valid():
-                with atomic() :
-                    #creation of User
-                    user = user_form.save()
-                    messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
-                
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
 
-                send_mail(
-                    subject=f"Creation de compte JeBiF",
-                    message=f"""
+            send_mail(
+                subject=f"Creation de compte JeBiF",
+                message=f"""
     Bonjour {user.username},
 
     Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
@@ -144,14 +143,14 @@ class AdhesionView(View):
     À bientôt,
     L’équipe JeBiF (RSG-France)
     """,
-			from_email=settings.SERVER_EMAIL,          
-			recipient_list=[user.email],
-			fail_silently=True
-			)
-		return redirect('home')
-	else:
-		messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
-		return render(request, 'jebif_users/register.html', {'user_form': user_form})
+            from_email=settings.SERVER_EMAIL,          
+            recipient_list=[user.email],
+            fail_silently=True
+            )
+            return redirect('home')
+        else:
+            messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+            return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
 
 def logout(request):
