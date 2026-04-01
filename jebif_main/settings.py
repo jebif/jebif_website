@@ -45,8 +45,6 @@ CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
 
 SITE_ID = 1
-CSRF_COOKIE_SECURE=True
-CSRF_TRUSTED_ORIGINS=["https://jebif.rumengol.net"]
 # Application definition
 
 INSTALLED_APPS = [
