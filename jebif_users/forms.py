@@ -12,6 +12,12 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+    def clean_email(self):
+        if User.objects.filter(email=self.cleaned_data['email']).exists():
+            raise forms.ValidationError("Il y a déjà un compte avec cette adresse mail !")
+        return self.cleaned_data['email']
+
+
 class UserModificationForm(forms.ModelForm):
 # Form to change User fields in the profile
 	current_password = forms.CharField(label="Mot de passe actuel",
