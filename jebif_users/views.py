@@ -25,7 +25,7 @@ from .forms import *
 # Get emails from "Staff" users.
 User = get_user_model()
 staff_users = User.objects.filter(is_staff=True)
-emails = [user.email for user in staff_users if user.email]
+staff_emails = [user.email for user in staff_users if user.email]
 site = Site.objects.get_current()
 
 fixtures_file = Path(__file__).parent.joinpath("fixtures.json")
@@ -45,7 +45,7 @@ def ask_membership():
         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
         message=msg_txt,
         from_email=settings.SERVER_EMAIL,
-        recipient_list=["iscb.rsg.france@gmail.com"],
+        recipient_list=staff_emails,
         fail_silently=True
         )
 
@@ -66,8 +66,37 @@ L’équipe JeBiF (RSG-France)
 """
     send_mail(msg_subj, msg_txt, msg_from, msg_to)
 
-    
+def resend_validation_mail(request):
+    user = request.user
 
+    if not (hasattr(user, "info") and user.info.verified):
+        send_validation_mail(user, False)
+    
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER',"home"))
+
+    
+def send_validation_mail(user: User, adhere: bool):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
+
+    send_mail(
+        subject=f"Creation de compte JeBiF",
+        message=f"""
+Bonjour {user.username},
+
+Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
+Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}?adhere={adhere}
+
+Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
+la considèrera lors de sa prochaine réunion.
+
+À bientôt,
+L’équipe JeBiF (RSG-France)
+""",
+        from_email=f"association@jebif.fr",          
+        recipient_list=[user.email],
+        fail_silently=True
+        )
 
 class RegisterView(View):
     #View to create a new User
@@ -85,26 +114,8 @@ class RegisterView(View):
                 user = user_form.save()
                 messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
             
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
-
-            send_mail(
-                subject=f"Creation de compte JeBiF",
-                message=f"""
-Bonjour {user.username},
-
-Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}
-
-Tu pourras ensuite compléter ton profil. Si tu as déjà une adhésion en cours, celle-ci sera conservée.
-
-À bientôt,
-L’équipe JeBiF (RSG-France)
-""",
-                from_email=settings.SERVER_EMAIL,          
-                recipient_list=[user.email],
-                fail_silently=True
-                )
+            send_validation_mail(user)
+            
             return redirect('home')
         else:
             messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
@@ -126,31 +137,19 @@ class AdhesionView(View):
                 user = user_form.save()
                 messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
             
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
-
-            send_mail(
-                subject=f"Creation de compte JeBiF",
-                message=f"""
-    Bonjour {user.username},
-
-    Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-    Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}?adhere=true
-
-    Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
-    la considèrera lors de sa prochaine réunion.
-
-    À bientôt,
-    L’équipe JeBiF (RSG-France)
-    """,
-            from_email=settings.SERVER_EMAIL,          
-            recipient_list=[user.email],
-            fail_silently=True
-            )
-            return redirect('home')
-        else:
-            messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
-            return render(request, 'jebif_users/register.html', {'user_form': user_form})
+            user_form = UserRegisterForm(request.POST)
+            info_form = UserInfoForm(request.POST)
+            
+            if user_form.is_valid() and info_form.is_valid():
+                with atomic() :
+                    #creation of User
+                    user = user_form.save()
+                    messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
+                
+                return redirect('home')
+            else:
+                messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
+                return render(request, 'jebif_users/adhesion.html', {'user_form': user_form, 'info_form': info_form})
 
 
 def logout(request):
@@ -162,13 +161,13 @@ def logout(request):
 class CustomLoginView(LoginView):
     template_name = 'jebif_users/login.html'
 
-    def form_valid(self, form):
-        user = form.get_user()
-        if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
-            return super().form_valid(form)
-        else:
-            form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu.")
-            return self.form_invalid(form)
+    # def form_valid(self, form):
+    #     user = form.get_user()
+    #     if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
+    #         return super().form_valid(form)
+    #     else:
+    #         form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu. <a href=''>Renvoyer le mail de validation</a>")
+    #         return self.form_invalid(form)
 
 
 class CustomPasswordResetView(PasswordResetView):
@@ -234,7 +233,7 @@ class VerifyView(View):
                         begin_membership=inscription,
                         end_membership=end,
                         verified=True,
-                        know_from="Ancien site" #alright like this?
+                        know_from="Déjà adhérent" #alright like this?
                     )
 
             if user_info is None:
@@ -309,7 +308,7 @@ def profile_view(request):
     try:
         user_info = request.user.info  # get UserInfo linked to User
     except(TypeError, ValueError, OverflowError, User.info.RelatedObjectDoesNotExist):
-        messages.error(request, "⚠️ Vous n'avez pas confirmé votre compte et n'avez donc pas de profil (pour l'instant).")
+        messages.error(request, f"⚠️ Vous n'avez pas confirmé votre compte, vous ne pouvez pas accéder au reste du site. <a href='https://{site.domain}/users/resend_verify'>Renvoyer le code de vérification</a>")
         return redirect("home")
 
     remaining_time = (user_info.end_membership - today).days

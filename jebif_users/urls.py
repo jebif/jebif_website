@@ -2,7 +2,7 @@ from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView, CustomPasswordResetView
+from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView, CustomPasswordResetView, resend_validation_mail
 
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     path('button_logout/', auth_views.LogoutView.as_view(next_page='home'), name='button_logout'),
     path('register/', RegisterView.as_view(), name='register'),
     path('adhesion/', AdhesionView.as_view(), name='adhesion'),
+    path("resend_verify", resend_validation_mail, name="resend_verify"),
     path("verify/<uid>/<token>?<adhere>", VerifyView.as_view(), name="verify"),
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),

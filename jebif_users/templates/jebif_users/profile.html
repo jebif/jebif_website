@@ -4,41 +4,49 @@
 
 {% block content %}
     <div class="container">
-        <h2>Mes informations</h2>
-        <form method="post">
-            {% csrf_token %}
-            
-            <h4>Informations de connexion</h4>
-            {{ user_form | crispy }}
+        {% if not request.user.info.verified %}
+            <h2>Compte non vérifié</h2>
 
-            <h4>Informations personnelles</h4>
-            {{ info_form | crispy }}
-            <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
-        </form>
-        {% if show_button_membership %}
-            <p><h4>Ton adhésion expire bientôt (moins de 30 jours) ou tu n'es pas adhérent.</h4></p>
-            {% if remaining_time %}
-                Temps restant: {{remaining_time}} jour(s).
-            {% else %}
-                Tu n'es pas (ou plus) adhérent.
-            {% endif %}
-            <form method="post" action="{% url 'request_membership' %}">
+            <p>Ton compte n'est pas vérifié ! Clique sur le lien dans le mail pour valider ton addresse et compléter ton inscription.</p>
+
+            <a href="{% url 'resend_verify' %}">Renvoyer le mail de validation</a>
+        {% else %}
+            <h2>Mes informations</h2>
+            <form method="post">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
+                
+                <h4>Informations de connexion</h4>
+                {{ user_form | crispy }}
+
+                <h4>Informations personnelles</h4>
+                {{ info_form | crispy }}
+                <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
             </form>
+            {% if show_button_membership %}
+                <p><h4>Ton adhésion expire bientôt (moins de 30 jours) ou tu n'es pas adhérent.</h4></p>
+                {% if remaining_time %}
+                    Temps restant: {{remaining_time}} jour(s).
+                {% else %}
+                    Tu n'es pas (ou plus) adhérent.
+                {% endif %}
+                <form method="post" action="{% url 'request_membership' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
+                </form>
 
-        {% elif request.user.info.want_member %}
-            <p><h4>Adhésion</h4></p>
-            <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
+            {% elif request.user.info.want_member %}
+                <p><h4>Adhésion</h4></p>
+                <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
 
-        {% endif %}
+            {% endif %}
 
-        <a href="#" class="delete_account btn" style="background: red">
-            Supprimer le compte
-        </a>
-        <div class="confirm_deletion">
-            <a href="{% url 'delete_account' %}" class="confirm btn" style="background:green">Supprimer</a>
-            <a href="#" class="cancel btn" style="background: red">Annuler</a>
+            <a href="#" class="delete_account btn" style="background: red">
+                Supprimer le compte
+            </a>
+            <div class="confirm_deletion">
+                <a href="{% url 'delete_account' %}" class="confirm btn" style="background:green">Supprimer</a>
+                <a href="#" class="cancel btn" style="background: red">Annuler</a>
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock content %}
