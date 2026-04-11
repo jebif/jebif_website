@@ -17,7 +17,7 @@ Complétion du compte
             {% endif %}
                 <form method="POST">
                     {% csrf_token %}
-                    {{ info_form | crispy }}
+                    {% crispy info_form %}
                     
                     <br>
                     <button class="btn btn-secondary" type="submit">

@@ -7,7 +7,7 @@
         <h1>Proposer un évènement</h1>
         <form method="post">
             {% csrf_token %}
-            {{ form | crispy }}
+            {% crispy form %}
             <button type="submit" class="btn btn-primary">Proposer mon évènement.</button>
         </form>
     {% else %}

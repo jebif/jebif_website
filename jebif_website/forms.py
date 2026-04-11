@@ -1,10 +1,12 @@
 from django import forms
 
 from jebif_website.models import Events, Participant, Article
+from crispy_forms.helper import FormHelper
 
 import datetime
 
 class NewEventForm(forms.ModelForm):
+    helper = FormHelper()
     #Form for users to propose events
     class Meta:
         model = Events
@@ -43,6 +45,7 @@ class NewEventForm(forms.ModelForm):
 
 #Class to be able to change the presentation in the Administration
 class ArticleAdminForm(forms.ModelForm):
+    helper = FormHelper()
     class Meta:
         model = Article
         fields = "__all__"
@@ -54,6 +57,7 @@ class ArticleAdminForm(forms.ModelForm):
         self.fields["subcategory"].label_from_instance = lambda obj: f"{obj.name} ({obj.category.name})"
 
 class ParticipantForm(forms.ModelForm):
+    helper = FormHelper()
     class Meta:
         model = Participant
         fields = ("first_name", "last_name", "email")
@@ -71,6 +75,7 @@ class ParticipantForm(forms.ModelForm):
 
 
 class ContactForm(forms.Form):
+    helper = FormHelper()
     name = forms.CharField(label="Nom", max_length=50)
     email = forms.EmailField(label="Adresse mail de contact")
     commentary = forms.CharField(widget=forms.Textarea, label="Commentaire")

@@ -40,8 +40,8 @@
         <form method="post">
             {% csrf_token %}
 
-            {{ user_form | crispy }}
-            {{ info_form | crispy }}
+            {% crispy user_form %}
+            {% crispy info_form %}
 
             <input type="submit" class="btn btn-primary mt-3" value="Adhérer">
         </form>

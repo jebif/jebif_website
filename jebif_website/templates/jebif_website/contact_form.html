@@ -26,7 +26,7 @@
         <h4>Et bien sûr par courriel :</h4>
         <form method="post">
             {% csrf_token %}
-            {{ form | crispy }}
+            {% crispy form %}
             <button class="btn btn-primary" type="submit">Envoyer</button>
         </form>
 

@@ -1,21 +1,17 @@
 {% extends 'jebif_website/base.html'%}
 {% load crispy_forms_tags %}
+
 {% block title %}
 Création de compte JeBiF
 {% endblock title %}
 
 {% block content %}
-
             <h1>
                 Enregistrement
             </h1>
             <form method="POST">
                 {% csrf_token %}
-                {{ user_form | crispy }}
-
-                
-                {{ info_form | crispy }}
-                    
+                {% crispy user_form %}                  
                     
                 <button class="btn btn-secondary" type="submit">
                     Enregistrement

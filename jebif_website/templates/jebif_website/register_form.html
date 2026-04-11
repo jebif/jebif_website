@@ -11,7 +11,7 @@
         <form method="post">
             {% csrf_token %}
 
-            {{ form | crispy }}
+            {% crispy form %}
             <input type="submit" class="btn btn-primary mt-3" value="Inscription">
             <p>L'inscription à cet évènement n'est pas une inscription au site web (si vous n'avez pas déjà de compte).
                 Les informations entrées sont utilisées pour anticiper le nombre de personnes et vous envoyer des informations
