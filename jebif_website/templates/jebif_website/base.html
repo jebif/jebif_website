@@ -19,6 +19,13 @@
         <div class="announce-box">
             <p>Vous êtes actuellement sur le site de développement de JeBiF. Il possède plus de fonctionnalités que jebif.fr mais peut avoir des bugs ou des pages sans thème. Merci de faire remonter les bugs rencontrés en soulevant une <a href="https://github.com/jebif/jebif_website/issues">issue github</a>.</p>
         </div>
+        {% if request.user.is_authenticated and not request.user.info.verified %}
+        <div class="announce-box red">
+            <p>Ton compte n'est pas vérifié ! Clique sur le lien dans le mail pour valider ton addresse et compléter ton inscription.</p>
+
+            <a href="{% url 'resend_verify' %}">Renvoyer le mail de validation</a>
+        </div>
+        {% endif %}
         <br>
         <br>
 

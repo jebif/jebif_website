@@ -14,9 +14,11 @@ from django.core.mail import send_mail
 from django.db.transaction import atomic
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse, HttpResponseRedirect
 
+import math
 import csv
 import datetime
 import json
+import pandas as pd
 from pathlib import Path
 
 from .models import *
@@ -28,9 +30,9 @@ staff_users = User.objects.filter(is_staff=True)
 staff_emails = [user.email for user in staff_users if user.email]
 site = Site.objects.get_current()
 
-fixtures_file = Path(__file__).parent.joinpath("fixtures.json")
-with open(fixtures_file,"r") as f:
-    old_accounts = json.load(f)
+fixtures_file = Path(__file__).parent.joinpath("fixtures.csv")
+
+old_accounts = pd.read_csv(fixtures_file, sep=",", header =0)
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
@@ -72,12 +74,12 @@ def resend_validation_mail(request):
     if not (hasattr(user, "info") and user.info.verified):
         send_validation_mail(user, False)
     
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER',"home"))
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER',"profile"))
 
     
 def send_validation_mail(user: User, adhere: bool):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = str(user.pk) + "-" + str(datetime.datetime.now().timestamp())
+    token = str(user.pk) + "-" + str(math.floor(datetime.datetime.now().timestamp()))
 
     send_mail(
         subject=f"Creation de compte JeBiF",
@@ -85,7 +87,7 @@ def send_validation_mail(user: User, adhere: bool):
 Bonjour {user.username},
 
 Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}?adhere={adhere}
+Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}_{adhere}
 
 Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
 la considèrera lors de sa prochaine réunion.
@@ -114,7 +116,7 @@ class RegisterView(View):
                 user = user_form.save()
                 messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
             
-            send_validation_mail(user)
+            send_validation_mail(user, False)
             
             return redirect('home')
         else:
@@ -189,8 +191,6 @@ class CustomPasswordResetView(PasswordResetView):
             form.add_error(None, "Il n'existe pas de compte avec cette adresse email.")
             return self.form_invalid(form)
 
-
-
 class VerifyView(View):
     def get(self, request, uid, token, adhere=False):
         try:
@@ -208,33 +208,33 @@ class VerifyView(View):
             existing_account = False
             user_info = None
 
-            for account in old_accounts:
-                if account["email"] == user.email:
-                    inscription = datetime.date.fromisoformat(account["inscription_date"])
-                    end = inscription.replace(year=2026)
+            if user.email in old_accounts["email"]:
+                account = old_accounts[old_accounts["email"] == user.email]
+                inscription = datetime.date.fromisoformat(account["inscription_date"])
+                end = inscription.replace(year=2026)
 
-                    existing_account = True
+                existing_account = True
 
-                    user_info = UserInfo(
-                        user=user,
-                        email=account["email"],
-                        firstname=account["firstname"],
-                        lastname=account["lastname"],
-                        laboratory=account["laboratory_name"],
-                        city_name=account["laboratory_city"],
-                        city_cp=account["laboratory_cp"],
-                        country=account["laboratory_country"],
-                        position=account["position"],
-                        motivation=account["motivation"],
-                        inscription_date=account["inscription_date"],
-                        is_member=account["active"],
-                        want_member=False,
-                        is_deleted=account["deleted"],
-                        begin_membership=inscription,
-                        end_membership=end,
-                        verified=True,
-                        know_from="Déjà adhérent" #alright like this?
-                    )
+                user_info = UserInfo(
+                    user=user,
+                    email=account["email"],
+                    firstname=account["firstname"],
+                    lastname=account["lastname"],
+                    laboratory=account["laboratory_name"],
+                    city_name=account["laboratory_city"],
+                    city_cp=account["laboratory_cp"],
+                    country=account["laboratory_country"],
+                    position=account["position"],
+                    motivation=account["motivation"],
+                    inscription_date=account["inscription_date"],
+                    is_member=account["active"],
+                    want_member=False,
+                    is_deleted=account["deleted"],
+                    begin_membership=inscription,
+                    end_membership=end,
+                    verified=True,
+                    know_from="Déjà adhérent" #alright like this?
+                )
 
             if user_info is None:
                 user_info = UserInfo(
@@ -259,7 +259,7 @@ class VerifyView(View):
             messages.error(request, "⚠️ Bad verification link or it has expired. Please try again.")
             return redirect("home")
 
-    def post(self, request, uid, token):
+    def post(self, request, uid, token, adhere):
         uid = force_str(urlsafe_base64_decode(uid))
         user = User.objects.get(pk=uid)
         existing_account = False
@@ -308,7 +308,6 @@ def profile_view(request):
     try:
         user_info = request.user.info  # get UserInfo linked to User
     except(TypeError, ValueError, OverflowError, User.info.RelatedObjectDoesNotExist):
-        messages.error(request, f"⚠️ Vous n'avez pas confirmé votre compte, vous ne pouvez pas accéder au reste du site. <a href='https://{site.domain}/users/resend_verify'>Renvoyer le code de vérification</a>")
         return redirect("home")
 
     remaining_time = (user_info.end_membership - today).days
