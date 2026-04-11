@@ -23,6 +23,8 @@ env = environ.Env(
 environ.Env.read_env()
 # if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
 
+DEBUG = env("DEBUG")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
@@ -40,7 +42,7 @@ MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-ALLOWED_HOSTS = ["localhost","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
+ALLOWED_HOSTS = ["localhost","127.0.0.1","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
 CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
 
@@ -177,7 +179,7 @@ TINYMCE_DEFAULT_CONFIG = {
 }
 
 # To change for Crispy, to make nicer forms
-CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5']
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 # To redirect after connexion (maybe will be changed)
@@ -196,15 +198,16 @@ SERVER_EMAIL="admin@beta.jebif.fr"
 
 #### Configuration for emails
 # Only for development
-#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
-
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend" 
+else:
 # Only for prod (whole set, need modifications):
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
-EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
+    EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = "admin@beta.jebif.fr"
 
