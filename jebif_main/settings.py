@@ -189,7 +189,6 @@ LOGIN_REDIRECT_URL = '/'
 
 #### Settings from old repos, for different aspects of the website 
 HTTP_DOMAIN="http://beta.jebif.fr"
-DOMAIN="beta.jebif.fr"
 
 ROOT_URL="/"
 LOGIN_URL = f"/login/"

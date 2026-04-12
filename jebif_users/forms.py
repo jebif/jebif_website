@@ -67,7 +67,7 @@ class UserModificationForm(forms.ModelForm):
 
 class UserInfoForm( ModelForm ) :
     helper = FormHelper()
-    helper.add_input(Submit('register', 'Enregistrer', css_class='btn-primary'))
+    helper.add_input(Submit('register', 'Confirmer', css_class='btn-primary'))
     class Meta :
         model = UserInfo
         fields = ("firstname", "lastname", 

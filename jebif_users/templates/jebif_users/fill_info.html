@@ -19,10 +19,6 @@ Complétion du compte
                     {% csrf_token %}
                     {% crispy info_form %}
                     
-                    <br>
-                    <button class="btn btn-secondary" type="submit">
-                        Confirmer {% if not existing_account %}et adhérer{% endif %}
-                    </button>
                 </form>
 
 {% endblock content %}

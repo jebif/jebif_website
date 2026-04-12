@@ -22,7 +22,6 @@ from pathlib import Path
 from .models import *
 from .forms import *
 
-from jebif_main.settings import DOMAIN
 
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -30,12 +29,12 @@ staff_users = User.objects.filter(is_staff=True)
 staff_emails = [user.email for user in staff_users if user.email]
 
 fixtures_file = Path(__file__).parent.joinpath("fixtures.csv")
-
+site = Site.objects.get_current()
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
     msg_subj = "Demande d'adhésion"
-    admin_url = f"https://{DOMAIN}/admin/auth/user/" 
+    admin_url = f"https://{site.domain}/admin/auth/user/" 
 
     msg_txt = f"""Bonjour,
             Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
@@ -85,7 +84,7 @@ def send_validation_mail(user, adhere: bool):
 Bonjour {user.username},
 
 Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{DOMAIN}/users/verify/{uid}/{token}_{adhere}
+Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}_{adhere}
 
 Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
 la considèrera lors de sa prochaine réunion.
