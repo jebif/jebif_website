@@ -3,10 +3,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm, Form, EmailField, ValidationError
 from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 from .models import UserInfo
 
 class UserRegisterForm(UserCreationForm):
     helper = FormHelper()
+    helper.add_input(Submit('register', 'Enregistrer', css_class='btn-primary'))
     email = forms.EmailField()
     class Meta:
         model = User
@@ -21,6 +23,7 @@ class UserRegisterForm(UserCreationForm):
 class UserModificationForm(forms.ModelForm):
 # Form to change User fields in the profile
     helper = FormHelper()
+    helper.add_input(Submit('register', 'Enregistrer', css_class='btn-primary'))
     current_password = forms.CharField(label="Mot de passe actuel",
                                     widget=forms.PasswordInput,
                                     required=False)
@@ -64,6 +67,7 @@ class UserModificationForm(forms.ModelForm):
 
 class UserInfoForm( ModelForm ) :
     helper = FormHelper()
+    helper.add_input(Submit('register', 'Enregistrer', css_class='btn-primary'))
     class Meta :
         model = UserInfo
         fields = ("firstname", "lastname", 
@@ -75,6 +79,7 @@ class UserInfoForm( ModelForm ) :
 
 class UserInfoEmailForm( Form ) :
     helper = FormHelper()
+    helper.add_input(Submit('register', 'Enregistrer', css_class='btn-primary'))
     email = EmailField(required=True)
 
     def clean_email( self ) :

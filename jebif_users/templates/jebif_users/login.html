@@ -9,7 +9,7 @@
             </h1>
             <form method="POST">
                 {% csrf_token %}
-                {% crispy form %}
+                {{ form | crispy }}
                 <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <button class="btn btn-secondary" type="submit">
                     Connexion

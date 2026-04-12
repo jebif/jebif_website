@@ -30,12 +30,6 @@ site = Site.objects.get_current()
 
 fixtures_file = Path(__file__).parent.joinpath("fixtures.csv")
 
-with open(fixtures_file, "r") as f:
-    old_accounts = csv.reader(f, delimiter=",")
-header = next(old_accounts)
-header_map = {}
-for i, item in enumerate(header):
-    header_map[item] = i
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
@@ -210,34 +204,36 @@ class VerifyView(View):
             info_form = UserInfoForm()
             existing_account = False
             user_info = None
+            
+            with open(fixtures_file, "r", encoding="utf-8") as f:
+                old_accounts = csv.DictReader(f, delimiter=",")
+                for account in old_accounts:
+                    if user.email == account["email"]:
+                        inscription = datetime.date.fromisoformat(account["inscription_date"])
+                        end = inscription.replace(year=2026)
 
-            for account in old_accounts:
-                if user.email == account[header_map["email"]]:
-                    inscription = datetime.date.fromisoformat(account[header_map["inscription_date"]])
-                    end = inscription.replace(year=2026)
+                        existing_account = True
 
-                    existing_account = True
-
-                    user_info = UserInfo(
-                        user=user,
-                        email=account[header_map["email"]],
-                        firstname=account[header_map["firstname"]],
-                        lastname=account[header_map["lastname"]],
-                        laboratory=account[header_map["laboratory_name"]],
-                        city_name=account[header_map["laboratory_city"]],
-                        city_cp=account[header_map["laboratory_cp"]],
-                        country=account[header_map["laboratory_country"]],
-                        position=account[header_map["position"]],
-                        motivation=account[header_map["motivation"]],
-                        inscription_date=account[header_map["inscription_date"]],
-                        is_member=account[header_map["active"]],
-                        want_member=False,
-                        is_deleted=account[header_map["deleted"]],
-                        begin_membership=inscription,
-                        end_membership=end,
-                        verified=True,
-                        know_from="Déjà adhérent" #alright like this?
-                    )
+                        user_info = UserInfo(
+                            user=user,
+                            email=account["email"],
+                            firstname=account["firstname"],
+                            lastname=account["lastname"],
+                            laboratory=account["laboratory_name"],
+                            city_name=account["laboratory_city"],
+                            city_cp=00000,
+                            country=account["laboratory_country"],
+                            position=account["position"],
+                            motivation=account["motivation"],
+                            inscription_date=account["inscription_date"],
+                            is_member=account["active"],
+                            want_member=False,
+                            is_deleted=account["deleted"],
+                            begin_membership=inscription,
+                            end_membership=end,
+                            verified=True,
+                            know_from="Déjà adhérent" #alright like this?
+                        )
 
             if user_info is None:
                 user_info = UserInfo(

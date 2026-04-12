@@ -12,10 +12,7 @@ Création de compte JeBiF
             <form method="POST">
                 {% csrf_token %}
                 {% crispy user_form %}                  
-                    
-                <button class="btn btn-secondary" type="submit">
-                    Enregistrement
-                </button>
+
             </form>
             <div class="pt-3">
                 <small class="text-muted">
