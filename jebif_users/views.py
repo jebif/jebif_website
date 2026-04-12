@@ -22,11 +22,12 @@ from pathlib import Path
 from .models import *
 from .forms import *
 
+from jebif_main.settings import DOMAIN
+
 # Get emails from "Staff" users.
 User = get_user_model()
 staff_users = User.objects.filter(is_staff=True)
 staff_emails = [user.email for user in staff_users if user.email]
-site = Site.objects.get_current()
 
 fixtures_file = Path(__file__).parent.joinpath("fixtures.csv")
 
@@ -34,7 +35,7 @@ fixtures_file = Path(__file__).parent.joinpath("fixtures.csv")
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
     msg_subj = "Demande d'adhésion"
-    admin_url = f"http://{site.domain}/admin/auth/user/" 
+    admin_url = f"https://{DOMAIN}/admin/auth/user/" 
 
     msg_txt = f"""Bonjour,
             Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
@@ -74,7 +75,7 @@ def resend_validation_mail(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER',"profile"))
 
     
-def send_validation_mail(user: User, adhere: bool):
+def send_validation_mail(user, adhere: bool):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = str(user.pk) + "-" + str(math.floor(datetime.datetime.now().timestamp()))
 
@@ -84,7 +85,7 @@ def send_validation_mail(user: User, adhere: bool):
 Bonjour {user.username},
 
 Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{site.domain}/users/verify/{uid}/{token}_{adhere}
+Pour vérifier ton adresse mail, clique sur ce lien (valable 20 minutes): https://{DOMAIN}/users/verify/{uid}/{token}_{adhere}
 
 Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
 la considèrera lors de sa prochaine réunion.
@@ -94,7 +95,7 @@ L’équipe JeBiF (RSG-France)
 """,
         from_email=f"association@jebif.fr",          
         recipient_list=[user.email],
-        fail_silently=True
+        fail_silently=False
         )
 
 class RegisterView(View):
@@ -387,8 +388,8 @@ Bonjour {info.firstname},
 
 Nous avons bien pris en compte ton adhésion à l’association JeBiF. N’hésite pas à nous contacter si tu as des questions, des commentaires, des idées, etc…
 
-Tu connais sans doute déjà notre site internet http://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
-http://www.iscbsc.org/rsg/rsg-france
+Tu connais sans doute déjà notre site internet https://jebif.fr. Tu peux aussi faire un tour sur notre page internationale du RSG-France.
+https://www.iscbsc.org/rsg/rsg-france
 
 À bientôt,
 L’équipe JeBiF (RSG-France)

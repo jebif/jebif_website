@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sites.middleware.CurrentSiteMiddleware"
 ]
 
 ROOT_URLCONF = 'jebif_main.urls'
@@ -188,6 +189,7 @@ LOGIN_REDIRECT_URL = '/'
 
 #### Settings from old repos, for different aspects of the website 
 HTTP_DOMAIN="http://beta.jebif.fr"
+DOMAIN="beta.jebif.fr"
 
 ROOT_URL="/"
 LOGIN_URL = f"/login/"
