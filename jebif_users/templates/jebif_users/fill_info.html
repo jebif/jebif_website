@@ -13,7 +13,7 @@ Complétion du compte
             </h1>
             <p>Adresse e-mail validée ! Remplis les informations suivantes pour compléter ton compte.</p>
             {% if existing_account %}
-                <p>Adhésion existante trouvée ! Vérifie que les information sont correctes.</p>
+                <p>Adhésion existante trouvée ! Vérifie que les information sont correctes. En particulier, le champs <b>Code Postal</b> n'a pas été rempli.</p>
             {% endif %}
                 <form method="POST">
                     {% csrf_token %}
