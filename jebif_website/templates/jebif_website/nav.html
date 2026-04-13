@@ -49,7 +49,7 @@
                 {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown ms-auto" id="menu-dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="menuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #3c72c4; color: white;">
-                            Menu
+                            <i class="fa-solid fa-user"></i><u>{{ request.user.username }}</u>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end text-center" aria-labelledby="menuButton">
                             
