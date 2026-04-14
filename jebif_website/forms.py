@@ -3,7 +3,7 @@ from django import forms
 from jebif_website.models import Events, Participant, Article
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-
+from datetimewidget.widgets import DateTimeWidget
 import datetime
 
 class NewEventForm(forms.ModelForm):
@@ -17,8 +17,7 @@ class NewEventForm(forms.ModelForm):
     title = forms.CharField(label="Le nom de votre événement", max_length=50)
     date = forms.DateTimeField(label="Date de l'événement", 
                            initial=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                           widget=forms.DateTimeInput(attrs={"type": "datetime"}),
-                           input_formats=["%Y-%m-%d %H:%M"],  # format requested by input[type=date]
+                           widget=DateTimeWidget(), # format requested by input[type=date]
                            )
     localisation = forms.CharField(label="Lieu de l'événement")
     description = forms.CharField(label="Description (500 caractères max)", max_length=500)
