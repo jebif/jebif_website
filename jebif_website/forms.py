@@ -61,6 +61,7 @@ class ArticleAdminForm(forms.ModelForm):
 
 class ParticipantForm(forms.ModelForm):
     helper = FormHelper()
+    helper.add_input(Submit('register', "S'inscrire à l'évènement", css_class='btn-primary'))
     class Meta:
         model = Participant
         fields = ("first_name", "last_name", "email")
