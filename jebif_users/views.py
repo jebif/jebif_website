@@ -40,13 +40,13 @@ def ask_membership():
             Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
             {admin_url}"""
             
-    send_mail(
-        subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
-        message=msg_txt,
-        from_email=settings.SERVER_EMAIL,
-        recipient_list=staff_emails,
-        fail_silently=True
-        )
+    # send_mail(
+    #     subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
+    #     message=msg_txt,
+    #     from_email=settings.SERVER_EMAIL,
+    #     recipient_list=staff_emails,
+    #     fail_silently=True
+    #     )
 
 def validate_membership( user ):
     # Funtion to automatically send a mail when a membership is validated
