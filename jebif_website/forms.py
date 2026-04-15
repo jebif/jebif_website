@@ -6,6 +6,7 @@ from crispy_forms.layout import Submit
 from datetimewidget.widgets import DateTimeWidget
 import datetime
 
+
 class NewEventForm(forms.ModelForm):
     helper = FormHelper()
     helper.add_input(Submit('submit', 'Soumettre', css_class='btn-primary'))
@@ -25,6 +26,7 @@ class NewEventForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -46,7 +48,7 @@ class NewEventForm(forms.ModelForm):
                 raise forms.ValidationError(
                     "❌ Vous avez déjà un événement en cours de validation."
                 )
-
+        
         return cleaned_data
     
 

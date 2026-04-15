@@ -245,7 +245,7 @@ class Events(models.Model):
     max_participants = models.IntegerField("Nombre maximum de participants (-1 pour participants illimités)", default=-1)
     pending = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
-
+    know_from_options = models.TextField("Options d'origine supplémentaires", blank=True)
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
     

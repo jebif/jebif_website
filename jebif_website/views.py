@@ -89,7 +89,13 @@ def upload_image(request):
         return JsonResponse({"location": f"{settings.MEDIA_URL}/images/{path}"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-
+DEFAULT_KNOW_FROM = [
+    "Discord",
+    "LinkedIn",
+    "Mail",
+    "Bouche à oreille",
+    "Autre"
+]
 @login_required(login_url='login')
 def propose_event_view(request):
     if not (request.user.info.is_member or request.user.is_superuser):
@@ -100,6 +106,7 @@ def propose_event_view(request):
         form = NewEventForm(request.POST, user=request.user)
         if form.is_valid():
             pending_event = form.save(commit=False)
+            pending_event.know_from_options = ",".join(DEFAULT_KNOW_FROM) + "," + pending_event.know_from_options
             pending_event.organiser = request.user
             if request.user.is_superuser:
                 pending_event.pending = False
