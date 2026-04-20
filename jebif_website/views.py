@@ -131,7 +131,7 @@ def propose_event_view(request):
 def event_register_view(request, event_id):
     event = get_object_or_404(Events, id=event_id)
     if request.method == "POST":
-        form = ParticipantForm(request.POST, user=request.user)
+        form = ParticipantForm(request.POST, user=request.user, event=event)
 
         if form.is_valid():
             participant = form.save(commit=False)
@@ -141,6 +141,8 @@ def event_register_view(request, event_id):
             participant.event = get_object_or_404(Events, pk=event_id)
             participant.save()
             messages.success(request, f"✅ Votre inscription a l'évènement {event.title} a bien été prise en compte. ")
+            event.nb_participants += 1
+            event.save()
             return redirect(f"/event/{event.id}")
     else:
         if not request.user.is_anonymous:
@@ -148,14 +150,14 @@ def event_register_view(request, event_id):
             initial_data = {
                 "first_name": user_info.firstname,
                 "last_name": user_info.lastname,
-                "email": user_info.email
+                "email": user_info.email,
             }
             form = ParticipantForm(
                 user = request.user,
                 initial=initial_data
             )
         else:
-            form = ParticipantForm(user=request.user)
+            form = ParticipantForm(user=request.user, event=event)
 
     return render(request, "jebif_website/register_form.html", {"form": form, 'event': event})
 

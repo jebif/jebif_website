@@ -15,15 +15,15 @@ import os
 import environ
 
 # Initialize environment variables
-env = environ.Env(
-    DEBUG=(bool, False)  # Par défaut, DEBUG est False
-)
+env = environ.Env()
+    #DEBUG=(bool, False)  # Par défaut, DEBUG est False      # NEED REWORK
+
 
 # Read .env file
 environ.Env.read_env()
 # if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
 
-DEBUG = env("DEBUG")
+DEBUG = bool(env("DEBUG"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")

@@ -7,16 +7,22 @@
         <h2>S'inscrire à {{ event.title }}</h2>
 
         <p>{{ event.description }}</p>
+        
+        {% if event.nb_participants == event.max_participants %}
+            <p>Le nombre maximum d'inscriptions pour cet événement, donné par l'organisateur, a été atteint.</p>
+            <p>Ce nombre est probablement dû à un espace limité sur le lieu de l'événement. Désolé!</p>
 
-        <form method="post">
-            {% csrf_token %}
+        {% else %}
+            <form method="post">
+                {% csrf_token %}
 
-            {% crispy form %}
+                {% crispy form %}
 
-            <p>L'inscription à cet évènement n'est pas une inscription au site web (si vous n'avez pas déjà de compte).
-                Les informations entrées sont utilisées pour anticiper le nombre de personnes et vous envoyer des informations
-                concernant cet évènement et rien d'autre.
-            </p>
-        </form>
+                <p>L'inscription à cet évènement n'est pas une inscription au site web (si vous n'avez pas déjà de compte).
+                    Les informations entrées sont utilisées pour anticiper le nombre de personnes et vous envoyer des informations
+                    concernant cet évènement et rien d'autre.
+                </p>
+            </form>
+        {% endif %}
     </div>
 {% endblock %}

@@ -12,16 +12,17 @@ class NewEventForm(forms.ModelForm):
     #Form for users to propose events
     class Meta:
         model = Events
-        fields = ["title", "date", "localisation", "description",]
+        fields = ["title", "date", "localisation", "description", "max_participants",]
 
-    title = forms.CharField(label="Le nom de votre évènement", max_length=50)
-    date = forms.DateTimeField(label="Date de l'évènement", 
+    title = forms.CharField(label="Le nom de votre événement", max_length=50)
+    date = forms.DateTimeField(label="Date de l'événement", 
                            initial=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                            widget=forms.DateTimeInput(attrs={"type": "datetime"}),
                            input_formats=["%Y-%m-%d %H:%M"],  # format requested by input[type=date]
                            )
-    localisation = forms.CharField(label="Lieu de l'évènement")
+    localisation = forms.CharField(label="Lieu de l'événement")
     description = forms.CharField(label="Description (500 caractères max)", max_length=500)
+    max_participants = forms.IntegerField(label="Nombre de participants maximum, '-1' pour aucune limite", max_value=200, min_value=-1)
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
@@ -32,6 +33,11 @@ class NewEventForm(forms.ModelForm):
         # Check if user is a member
         if (self.user and not (self.user.info.is_member or self.user.is_superuser)) or (not self.user):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
+
+        # If the user is a superuser, validate automatically the event
+        if (self.user.is_superuser):
+            self.pending=False
+            self.active=True
         
         # Check if another pending event from the user already exist
         exists = Events.objects.filter(
@@ -39,7 +45,7 @@ class NewEventForm(forms.ModelForm):
             ).filter(pending=True).exists()
         if exists:
                 raise forms.ValidationError(
-                    "❌ Vous avez déjà un évènement en cours de validation."
+                    "❌ Vous avez déjà un événement en cours de validation."
                 )
 
         return cleaned_data
@@ -61,19 +67,27 @@ class ArticleAdminForm(forms.ModelForm):
 
 class ParticipantForm(forms.ModelForm):
     helper = FormHelper()
-    helper.add_input(Submit('register', "S'inscrire à l'évènement", css_class='btn-primary'))
+    helper.add_input(Submit('register', "S'inscrire à l'événement", css_class='btn-primary'))
     class Meta:
         model = Participant
-        fields = ("first_name", "last_name", "email")
+        fields = ("first_name", "last_name", "email", "know_from", "k_f_text", "image_use")
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+        self.event = kwargs.pop("event", None)
         super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
-        if self.user:
-            cleaned_data["user"] = self.user
+        email = cleaned_data.get("email")
+        exists = Participant.objects.filter(event=self.event, email=email).exists()
+        if exists:
+            raise forms.ValidationError(
+                    "❌ Vous vous êtes déjà inscrit à cet événement."
+                )
+        else:
+            if self.user:
+                cleaned_data["user"] = self.user
             
         return cleaned_data
 

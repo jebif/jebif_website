@@ -10,6 +10,7 @@
 
         {% if request.user.is_superuser and event.participant_set.all %}
             <h3>Liste des participants inscrits</h3>
+            <p>(nombre de participants: {{event.nb_participants}})</p>
             <table>
                 <tr>
                     <th>Prénom</th>
