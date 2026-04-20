@@ -250,8 +250,8 @@ class VerifyView(View):
 
             info_form = UserInfoForm(instance=user_info)
 
-            if adhere:
-                ask_membership()
+            #if adhere:
+            #    ask_membership()
 
             return render(request, "jebif_users/fill_info.html", {"existing_account":existing_account, "info_form":info_form})
         else:
