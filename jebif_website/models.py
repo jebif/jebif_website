@@ -273,6 +273,7 @@ class Participant(models.Model):
     email = models.EmailField("Addresse mail")
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
+    image_use = models.BooleanField("Autorisation d'utiliser l'image", default=True)
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
