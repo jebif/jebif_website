@@ -15,12 +15,12 @@ import os
 import environ
 
 # Initialize environment variables
-env = environ.Env(
-    DEBUG=(bool, False)  # Par défaut, DEBUG est False
-)
+env = environ.Env()
+    #DEBUG=(bool, False)  # Par défaut, DEBUG est False      # NEED REWORK
+
 
 # Read .env file
-environ.Env.read_env()
+#environ.Env.read_env() # Unused, prefer to use env() for each setting (and method used for some)
 # if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
 
 DEBUG = env("DEBUG")

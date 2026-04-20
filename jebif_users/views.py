@@ -40,13 +40,13 @@ def ask_membership():
             Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
             {admin_url}"""
             
-    # send_mail(
-    #     subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
-    #     message=msg_txt,
-    #     from_email=settings.SERVER_EMAIL,
-    #     recipient_list=staff_emails,
-    #     fail_silently=True
-    #     )
+    send_mail(
+         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
+         message=msg_txt,
+         from_email=settings.SERVER_EMAIL,
+         recipient_list=staff_emails,
+         fail_silently=True
+         )
 
 def validate_membership( user ):
     # Funtion to automatically send a mail when a membership is validated
@@ -160,7 +160,7 @@ def logout(request):
 class CustomLoginView(LoginView):
     template_name = 'jebif_users/login.html'
 
-    # def form_valid(self, form):
+    # def form_valid(self, form):       #Prefer allowing the User to connect. the user gets a banner telling it to verify its account
     #     user = form.get_user()
     #     if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
     #         return super().form_valid(form)

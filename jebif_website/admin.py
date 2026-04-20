@@ -6,7 +6,7 @@ import jebif_website.models as website
 
 #admin.site.register(Article)
 admin.site.register(Category)
-admin.site.register(Subcategory)
+#admin.site.register(Subcategory)
 admin.site.register(WebPlatforms)
 
 @admin.register(LinkedImage)
@@ -16,6 +16,10 @@ class LinkedImageAdmin(admin.ModelAdmin):
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'email', 'event')
+
+@admin.register(Subcategory)
+class SubcategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'category', 'rank')
 
 class PendingEventAdmin(admin.ModelAdmin):
     model=website.Events
@@ -51,5 +55,6 @@ admin.site.register(Events, PendingEventAdmin)
 
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
+    list_display = ('title','category', 'subcategory', 'author',)
 
 admin.site.register(Article, ArticleAdmin)
