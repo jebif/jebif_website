@@ -70,7 +70,7 @@ class ParticipantForm(forms.ModelForm):
     helper.add_input(Submit('register', "S'inscrire à l'événement", css_class='btn-primary'))
     class Meta:
         model = Participant
-        fields = ("first_name", "last_name", "email", "image_use")
+        fields = ("first_name", "last_name", "email", "know_from", "k_f_text", "image_use")
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)

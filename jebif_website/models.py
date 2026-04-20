@@ -268,12 +268,25 @@ class Participant(models.Model):
     user: User
         Jebif User corresponding to the participant, if registered while connected
     """
+    DISCORD = "DIS"
+    LINKEDIN = "LIN"
+    MAIL = "MAI"
+    ACQUAINTANCE = "ACQ"
+    OTHER = "OTH"
+
+    KNOW_FROM_CHOICES = {DISCORD:"Discord", LINKEDIN:"LinkedIN", MAIL:"Mail", ACQUAINTANCE:"Bouche-à-oreille", OTHER:"Autre"}
     first_name = models.CharField("Prénom", max_length=100)
     last_name = models.CharField("Nom",max_length=100)
     email = models.EmailField("Addresse mail")
+    know_from = models.CharField("Comment avez-vous pris connaissance de cet événement?", max_length=3, choices=KNOW_FROM_CHOICES, blank=True)
+    k_f_text = models.CharField("Si Autre:", blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
     image_use = models.BooleanField("Autorisation d'utiliser l'image", default=True)
     
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    #def is_from_social(self):  #exemple to show why use variables
+    #   return self.know_from in {self.DISCORD, self.LINKEDIN}
