@@ -245,6 +245,7 @@ class Events(models.Model):
     max_participants = models.IntegerField("Nombre maximum de participants (-1 pour participants illimités)", default=-1)
     pending = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
+    nb_participants = models.IntegerField(default=0)
 
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
