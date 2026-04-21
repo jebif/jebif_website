@@ -4,6 +4,7 @@
 
                 <div>
                     <h3>{{article.title}}</h3>
+                    <p>Publié le : {{article.date}}</p>
                     {{article.content|safe}}
                     {% if article.pdf %}
                         <a href="{{ article.pdf.url }}" target="_blank">

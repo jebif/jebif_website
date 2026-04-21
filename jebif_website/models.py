@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+import qrcode
+
 class Category(models.Model):
     '''
 	Object representing a Category for an Article.
@@ -234,6 +236,16 @@ class Events(models.Model):
 
     pending : bool
         Has this event been seen (and judged). Pending: not judged yet. Not Pending: Either validated or unvalidated.
+
+    active : bool
+        Is this event online
+
+    nb_participants : int
+        How many people registered to assist at this event
+
+    qr_img : image
+        The QR code to link to this event # NOT IMPLEMENTED YET, MAY BE REMOVED IF PREVIOUS SOLUTION WORK
+    
     Methods
 	-------
     '''
@@ -248,6 +260,16 @@ class Events(models.Model):
 
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
+
+    """def save(self, *args, **kwargs):
+        if not self.qr_img:
+            #img = qrcode.make('Some data here')
+            #type(img)  # qrcode.image.pil.PilImage
+            #img.save("some_file.png")
+            pass
+        self.full_clean()
+        super().save(*args, **kwargs)"""
+        
     
 class Participant(models.Model):
     """

@@ -18,22 +18,24 @@
             <ul class="navbar-nav w-100 align-items-center">
 
                 {% for category in categories_nav %}
-                    <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
-                        <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
-                            href="{% url 'articles_per_category' category.slug %}" 
-                            role="button" 
-                            data-bs-toggle="dropdown-toggle" 
-                            aria-expanded="false">
-                            {{ category.name }}
-                        </a>
-                        {% if category.subcategory.all %}
-                            <ul class="dropdown-menu">
-                                {% for subcat in category.subcategory.all|dictsort:"rank" %}
-                                    <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </li>
+                    {% if category.name != "Other" %}
+                        <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
+                            <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
+                                href="{% url 'articles_per_category' category.slug %}" 
+                                role="button" 
+                                data-bs-toggle="dropdown-toggle" 
+                                aria-expanded="false">
+                                {{ category.name }}
+                            </a>
+                            {% if category.subcategory.all %}
+                                <ul class="dropdown-menu">
+                                    {% for subcat in category.subcategory.all|dictsort:"rank" %}
+                                        <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endif %}
                 {% endfor %}
 
                 {% if not request.user.is_authenticated %}
