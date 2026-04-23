@@ -22,7 +22,7 @@ class NewEventForm(forms.ModelForm):
                            )
     localisation = forms.CharField(label="Lieu de l'événement")
     description = forms.CharField(label="Description (500 caractères max)", max_length=500)
-    max_participants = forms.IntegerField(label="Nombre de participants maximum, '-1' pour aucune limite", max_value=200, min_value=-1)
+    max_participants = forms.IntegerField(label="Nombre de participants maximum, '-1' pour aucune limite", max_value=200, min_value=-1, initial=-1)
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)

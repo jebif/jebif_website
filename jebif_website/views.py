@@ -141,8 +141,6 @@ def event_register_view(request, event_id):
             participant.event = get_object_or_404(Events, pk=event_id)
             participant.save()
             messages.success(request, f"✅ Votre inscription a l'évènement {event.title} a bien été prise en compte. ")
-            event.nb_participants += 1
-            event.save()
             return redirect(f"/event/{event.id}")
     else:
         if not request.user.is_anonymous:
