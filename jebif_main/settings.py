@@ -23,7 +23,7 @@ env = environ.Env()
 environ.Env.read_env()
 # if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
 
-DEBUG = bool(env("DEBUG"))
+DEBUG = env.bool("DEBUG", default=False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
