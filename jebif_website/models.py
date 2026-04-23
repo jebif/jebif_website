@@ -274,7 +274,7 @@ class Participant(models.Model):
     ACQUAINTANCE = "ACQ"
     OTHER = "OTH"
 
-    KNOW_FROM_CHOICES = {DISCORD:"Discord", LINKEDIN:"LinkedIN", MAIL:"Mail", ACQUAINTANCE:"Bouche-à-oreille", OTHER:"Autre"}
+    KNOW_FROM_CHOICES = {DISCORD:"Discord", LINKEDIN:"LinkedIn", MAIL:"Mail", ACQUAINTANCE:"Bouche à oreille", OTHER:"Autre"}
     first_name = models.CharField("Prénom", max_length=100)
     last_name = models.CharField("Nom",max_length=100)
     email = models.EmailField("Addresse mail")
