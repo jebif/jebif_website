@@ -23,12 +23,12 @@
                             <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
                                 href="{% url 'articles_per_category' category.slug %}" 
                                 role="button" 
-                                data-bs-toggle="dropdown-toggle" 
+                                data-bs-toggle="dropdown" 
                                 aria-expanded="false">
                                 {{ category.name }}
                             </a>
                             {% if category.subcategory.all %}
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     {% for subcat in category.subcategory.all|dictsort:"rank" %}
                                         <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
                                     {% endfor %}
@@ -95,6 +95,14 @@
 /* Évite le déplacement du menu */
 .nav-item.dropdown .dropdown-menu {
     margin-top: 0;
+    max-width: 80vw;
+    white-space: normal;
+}
+
+/* Get the Subcategory to cut in lines if too long*/
+.dropdown-item {
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* open menu by clic (for mobile) */
@@ -108,6 +116,8 @@
     
     right: 0;
     left: auto;
+    max-width: 80vw;
+    white-space: normal;
     text-align: center;
 }
 #menu-dropdown .dropdown-menu .btn {
