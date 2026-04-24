@@ -234,17 +234,15 @@ class Events(models.Model):
     user : str
         Who proposed this event
 
+    max_participants: int
+        How many people can attend the event
+
     pending : bool
         Has this event been seen (and judged). Pending: not judged yet. Not Pending: Either validated or unvalidated.
 
     active : bool
         Is this event online
 
-    nb_participants : int
-        How many people registered to assist at this event
-
-    qr_img : image
-        The QR code to link to this event # NOT IMPLEMENTED YET, MAY BE REMOVED IF PREVIOUS SOLUTION WORK
     
     Methods
 	-------

@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'tinymce',          #requires: pip install django-tinymce
     'crispy_forms',     #see requirement in README
     'crispy_bootstrap5',
-    'qr_code',      #necessary to generate QR code
+    'qr_code',      #necessary to generate QR code, requires: pip install django-qr-code
 ]
 
 MIDDLEWARE = [
