@@ -20,4 +20,13 @@ class Migration(migrations.Migration):
             name='know_from',
             field=models.CharField(blank=True, choices=[('DIS', 'Discord'), ('LIN', 'LinkedIN'), ('MAI', 'Mail'), ('ACQ', 'Bouche-à-oreille'), ('OTH', 'Autre')], max_length=3, verbose_name='Comment avez-vous pris connaissance de cet événement?'),
         ),
+        migrations.RemoveField(
+            model_name='events',
+            name='time',
+        ),
+        migrations.AlterField(
+            model_name='events',
+            name='date',
+            field=models.DateTimeField(),
+        ),
     ]

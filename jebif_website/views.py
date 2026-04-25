@@ -106,7 +106,6 @@ def propose_event_view(request):
         form = NewEventForm(request.POST, user=request.user)
         if form.is_valid():
             pending_event = form.save(commit=False)
-            pending_event.know_from_options = ",".join(DEFAULT_KNOW_FROM) + "," + pending_event.know_from_options
             pending_event.organiser = request.user
             if request.user.is_superuser:
                 pending_event.pending = False

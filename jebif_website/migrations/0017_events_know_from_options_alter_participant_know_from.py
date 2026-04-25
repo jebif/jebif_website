@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jebif_website', '0016_remove_events_time_alter_events_date'),
+        ('jebif_website', '0016_participant_k_f_text_participant_know_from'),
     ]
 
     operations = [
@@ -19,5 +19,14 @@ class Migration(migrations.Migration):
             model_name='participant',
             name='know_from',
             field=models.TextField(blank=True, verbose_name='Comment avez-vous découvert cet évènement ?'),
+        ),
+        migrations.RemoveField(
+            model_name='events',
+            name='nb_participants',
+        ),
+        migrations.AlterField(
+            model_name='participant',
+            name='know_from',
+            field=models.CharField(blank=True, choices=[('DIS', 'Discord'), ('LIN', 'LinkedIn'), ('MAI', 'Mail'), ('ACQ', 'Bouche à oreille'), ('OTH', 'Autre')], max_length=3, verbose_name='Comment avez-vous pris connaissance de cet événement?'),
         ),
     ]
