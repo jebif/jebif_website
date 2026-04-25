@@ -5,18 +5,19 @@
         {% for article in articles %}
 
             {% if article %}
-                <div>
-                    <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
-                    <p>Publié le : {{article.date}}</p>
-                    {{article.content|safe}}
-                    {% if article.pdf %}
-                        <a href="{{ article.pdf.url }}" target="_blank">
-                            Voir le PDF
-                        </a>
-                    {% endif %}
-                    <hr class="my-4"> 
-                </div>
-                
+                {% if article.is_draft == False %}
+                    <div>
+                        <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
+                        <p>Publié le : {{article.date}}</p>
+                        {{article.content|safe}}
+                        {% if article.pdf %}
+                            <a href="{{ article.pdf.url }}" target="_blank">
+                                Voir le PDF
+                            </a>
+                        {% endif %}
+                        <hr class="my-4"> 
+                    </div>
+                {% endif %}
             {% endif %}
 
         {% endfor %}

@@ -55,6 +55,6 @@ admin.site.register(Events, PendingEventAdmin)
 
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
-    list_display = ('title','category', 'subcategory', 'author',)
+    list_display = ('title','category', 'subcategory', 'author','is_draft')
 
 admin.site.register(Article, ArticleAdmin)

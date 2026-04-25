@@ -128,7 +128,7 @@ class Article(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    featured = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)

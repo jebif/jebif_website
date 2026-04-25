@@ -1,7 +1,7 @@
 {% extends 'jebif_website/base.html' %}
 
 {% block content %}
-
+            {% if article.is_draft == False %}
                 <div class="article-content">
                     <h3>{{article.title}}</h3>
                     <p>Publié le : {{article.date}}</p>
@@ -12,5 +12,5 @@
                         </a>
                     {% endif %}
                 </div>
-
+            {% endif %}
 {% endblock %}
