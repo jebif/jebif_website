@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='nb_participants',
             field=models.IntegerField(default=0),
         ),
+        migrations.AddField(
+            model_name='participant',
+            name='know_from',
+            field=models.TextField(blank=True, verbose_name='Comment avez-vous connu JeBiF ?'),
+        ),
     ]
