@@ -11,20 +11,116 @@
 <h1>Calendrier des évènements</h1>
 
 
+<form style="display:none;">
+    {% csrf_token %}
+</form>
+
 <div id="calendar"></div>
 
 <script>
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
     document.addEventListener('DOMContentLoaded', function () {
 
     var calendarEl = document.getElementById('calendar');
 
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        events: "{% url 'events_json' %}"
+        selectable: true,
+        selectMirror: true,
+        editable: true,
+
+        select: function(info) {
+
+            let type = prompt("1 = Event | 2 = Meeting");
+
+            if (!type) return;
+
+            let title = prompt("Titre :");
+            if (!title) return;
+
+            let description = prompt("Description :");
+            if (!description) return;
+
+            let url = "";
+
+            if (type === "1") {
+                url = "{% url 'create_events' %}";
+                let localisation = prompt("Localisation :");
+                if (!localisation) return;
+                let max_participants = prompt("Nombre maximal de participants (-1 pour pas de limite) :");
+                if (!max_participants) return;
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        date: info.startStr,
+                        localisation: localisation,
+                        max_participants: max_participants,
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        calendar.refetchEvents();
+                    }
+                });
+
+            } else if (type === "2") {
+                let kind = prompt("AG = Assemblée Générale | GT = Groupe de Travail | CA = Conseil d'Administration | OT = Autre");
+                if (!kind) return;
+                url = "{% url 'create_meetings' %}";
+                
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        date: info.startStr,
+                        kind: kind,
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        calendar.refetchEvents();
+                    }
+                });
+            } else {
+                alert("Choix invalide");
+                return;
+            }
+
+            
+        },
+
+        eventClick: function(info) {
+            alert(info.event.title + "\nTime : " + info.event.start);
+        },
+        events: "{% url 'events_json' %}",
+        failure: function() {
+        alert("Erreur de chargement des événements");
+    }
     });
     
     calendar.render();
 });
 </script>
+
 
 {% endblock content %}

@@ -309,3 +309,46 @@ class Participant(models.Model):
 
     #def is_from_social(self):  #exemple to show why use variables
     #   return self.know_from in {self.DISCORD, self.LINKEDIN}
+
+
+class Meetings(models.Model):
+    '''
+	Meetings of the JeBiF staff.
+	...
+
+	Attributes
+	----------
+    title : str
+        Name of the Event
+
+    date : date object
+        When is the opening of the event
+
+    description : str
+        What is the content of the event
+    
+    Methods
+	-------
+    '''
+    CA = "CA"
+    GT = "GT"
+    AG = "AG"
+    OTHER = "OT"
+    KIND_CHOICES = {CA:"Conseil d'administration", GT:"Groupe de Travail", AG:"Assemblée Générale", OTHER:"Autre"}
+    COLOR_CHOICES = {CA:"red", GT:"blueviolet", AG:"green", OTHER:"brown"}
+    NEW_COLOR_CHOICES = [{"CA": "red", "GT": "blueviolet", "AG":"green", "OT": "brown"}]
+    title = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    kind = models.CharField("Type de réunion", max_length=2, choices=KIND_CHOICES, blank=True)
+    description = models.TextField("Description")
+    color = models.CharField("Couleur", max_length=2, choices=COLOR_CHOICES, default="brown", blank=True)
+
+    def __str__( self ) :
+        return f"{self.title} - {self.date}"
+
+    def save(self, *args, **kwargs):
+        NEW_COLOR_CHOICES = {"CA": "red", "GT": "blueviolet", "AG":"green", "OT": "brown"}
+        if self.kind:
+            key = self.kind
+            self.color = str(NEW_COLOR_CHOICES[self.kind])
+        super().save(*args, **kwargs)

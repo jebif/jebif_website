@@ -23,7 +23,7 @@ from .models import *
 from .forms import *
 
 from django.http import JsonResponse
-from jebif_website.models import Events
+from jebif_website.models import Events, Meetings
 
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -449,7 +449,7 @@ def admin_calendar(request):
 
 @login_required
 @is_admin()
-def events_json(request):
+def events_json_old(request):
     events = Events.objects.all()
 
     data = [
@@ -457,8 +457,36 @@ def events_json(request):
             "title": e.title,
             "start": e.date.date().isoformat(),
             "allDay": True,
+            "color": "green",
         }
         for e in events
     ]
 
     return JsonResponse(data, safe=False)
+
+
+@login_required
+@is_admin()
+def events_json(request):
+    data = []
+    events = Events.objects.all()
+    # Events like JebifPub
+    for e in events:
+        data.append({
+            "title": f"EV : {e.title}",
+            "start": e.date.date().isoformat(),
+            "allDay": True,#Need to change this; end = start +1h
+            "color": "blue",
+        })
+
+    # Meetings
+    for m in Meetings.objects.all():
+        data.append({
+            "title": f"{m.kind} : {m.title}",
+            "start": m.date.date().isoformat(),
+            "allDay": True,
+            "color": m.color,
+        })
+
+    return JsonResponse(data, safe=False)
+    
