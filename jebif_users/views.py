@@ -22,6 +22,8 @@ from pathlib import Path
 from .models import *
 from .forms import *
 
+from django.http import JsonResponse
+from jebif_website.models import Events
 
 # Get emails from "Staff" users.
 User = get_user_model()
@@ -351,23 +353,29 @@ def is_admin() :
         return u.is_authenticated and u.is_staff
     return user_passes_test(validate)
 
+@login_required
 @is_admin()
 def button_admin(request):
+    if not (request.user or request.user.info.is_member or request.user.is_superuser):
+        messages.error(request, "❌ Vous n'avez pas accès à cette page.")
+        return redirect("/")
     if request.method == 'POST':
         return redirect('admin_home')
     else:
         return render(request, 'jebif_users/button_admin.html')
-    
+
+@login_required   
 @is_admin()
-def admin_home_view(request):
+def admin_home_view(request): 
     return render(request, 'jebif_users/admin_home.html')
 
+@login_required
 @is_admin()
 def admin_subscription( request ) :
     infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True)
     return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
 
-
+@login_required
 @is_admin()
 def admin_subscription_accept( request, info_id ) :
     #Function for the admin page in the website (not the interface) to accept subscription
@@ -397,7 +405,7 @@ L’équipe JeBiF (RSG-France)
 
     return HttpResponseRedirect("../../")
 
-
+@login_required
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
     #Function for the admin page in the website (not the interface) to reject subscription
@@ -407,7 +415,7 @@ def admin_subscription_reject( request, info_id ) :
         info.save()
     return HttpResponseRedirect("../../")
 
-
+@login_required
 @is_admin()
 def admin_export_csv( request ) :
     #Function for the admin page in the website (not the interface) to export the list of members
@@ -430,3 +438,27 @@ def admin_export_csv( request ) :
             i.inscription_date.isoformat()])
 
     return response
+
+@login_required
+@is_admin()
+def admin_calendar(request):
+    if not (request.user or request.user.info.is_member or request.user.is_superuser):
+        messages.error(request, "❌ Vous n'avez pas accès à cette page.")
+        return redirect("/")
+    return render(request, "jebif_users/admin_calendar.html")
+
+@login_required
+@is_admin()
+def events_json(request):
+    events = Events.objects.all()
+
+    data = [
+        {
+            "title": e.title,
+            "start": e.date.date().isoformat(),
+            "allDay": True,
+        }
+        for e in events
+    ]
+
+    return JsonResponse(data, safe=False)
