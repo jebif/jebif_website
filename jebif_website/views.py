@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.utils import timezone
 
 from jebif_website.models import Article, Category, Subcategory, Events, Meetings
 from jebif_website.forms import NewEventForm, ParticipantForm, ContactForm
@@ -207,7 +208,8 @@ def create_events_view(request):
     try:
         data = json.loads(request.body)
 
-        date = datetime.fromisoformat(data["date"])
+        #date = datetime.fromisoformat(data["date"])
+        date = timezone.make_aware(datetime.fromisoformat(data["date"]))
 
         event = Events.objects.create(
             title=data["title"],
@@ -234,7 +236,8 @@ def create_meetings_view(request):
     try:
         data = json.loads(request.body)
 
-        date = datetime.fromisoformat(data["date"])
+        #date = datetime.fromisoformat(data["date"])
+        date = timezone.make_aware(datetime.fromisoformat(data["date"]))
 
         meeting = Meetings.objects.create(
             title=data["title"],
