@@ -21,10 +21,7 @@
                     {% if category.name != "Other" %}
                         <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
                             <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
-                                href="{% url 'articles_per_category' category.slug %}" 
-                                role="button" 
-                                data-bs-toggle="dropdown" 
-                                aria-expanded="false">
+                                href="{% url 'articles_per_category' category.slug %}" >
                                 {{ category.name }}
                             </a>
                             {% if category.subcategory.all %}
@@ -74,7 +71,7 @@
                         {% include 'jebif_users/button_login.html'%}
                         {% include 'jebif_users/button_registration.html'%}
                         
-                    </il>
+                    </li>
                 {% endif %}
             </ul>
             
@@ -88,7 +85,7 @@
 
 /* Hover uniquement sur les appareils avec souris */
 @media (hover: hover) {
-    .nav-item.dropdown:not(#menu-dropdown):hover .dropdown-menu {
+    .nav-item.dropdown:not(#menu-dropdown):hover > .dropdown-menu {
         display: block;
     }
 }
