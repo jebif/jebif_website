@@ -62,6 +62,7 @@
 
                                     {% if request.user.info.is_member %}
                                         {% include 'jebif_election/button_election.html'%}
+                                        {% include 'jebif_users/button_calendar.html'%}
                                     {% endif %}
 
                                 {% include 'jebif_users/button_logout.html'%}

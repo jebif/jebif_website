@@ -447,23 +447,6 @@ def admin_calendar(request):
         return redirect("/")
     return render(request, "jebif_users/admin_calendar.html")
 
-@login_required
-@is_admin()
-def events_json_old(request):
-    events = Events.objects.all()
-
-    data = [
-        {
-            "title": e.title,
-            "start": e.date.date().isoformat(),
-            "allDay": True,
-            "color": "green",
-        }
-        for e in events
-    ]
-
-    return JsonResponse(data, safe=False)
-
 
 @login_required
 @is_admin()
@@ -475,6 +458,9 @@ def events_json(request):
         data.append({
             "title": f"EV : {e.title}",
             "start": e.date.date().isoformat(),
+            "description": e.description,
+            "localisation": e.localisation,
+            "max_participants": e.max_participants,
             "allDay": True,#Need to change this; end = start +1h
             "color": "blue",
         })
@@ -484,9 +470,16 @@ def events_json(request):
         data.append({
             "title": f"{m.kind} : {m.title}",
             "start": m.date.date().isoformat(),
+            "description": m.description,
             "allDay": True,
             "color": m.color,
         })
 
     return JsonResponse(data, safe=False)
     
+@login_required
+def user_calendar(request):
+    if not (request.user or request.user.info.is_member):
+        messages.error(request, "❌ Vous n'avez pas accès à cette page.")
+        return redirect("/")
+    return render(request, "jebif_users/user_calendar.html")

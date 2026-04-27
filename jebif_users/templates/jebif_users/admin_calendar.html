@@ -229,7 +229,16 @@
             },
 
             eventClick: function(info) {
-                alert(info.event.title);
+                message=""
+                if (info.event.extendedProps.localisation && info.event.extendedProps.max_participants){
+                    message= info.event.title 
+                    +"\nLocalisation : "+ info.event.extendedProps.localisation 
+                    +"\nNombre maximum de participants (-1 = illimité): "+ info.event.extendedProps.max_participants
+                    +"\nDescription : "+ info.event.extendedProps.description
+                } else{
+                    message= info.event.title +"\nDescription : "+ info.event.extendedProps.description
+                }
+                alert(message);
             },
 
             events: {
