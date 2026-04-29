@@ -9,10 +9,16 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.utils import timezone
 
-from jebif_website.models import Article, Category, Subcategory, Events
+from jebif_website.models import Article, Category, Subcategory, Events, Meetings
 from jebif_website.forms import NewEventForm, ParticipantForm, ContactForm
-    
+
+from jebif_users.views import is_admin
+
+import json
+from datetime import datetime
+
 # Get emails from "Staff" users.
 User = get_user_model()
 staff_users = User.objects.filter(is_staff=True)
@@ -193,3 +199,54 @@ def contact_view(request):
 
     return render(request, 'jebif_website/contact_form.html', {'form': form})
 
+@login_required
+@is_admin()
+def create_events_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+
+        #date = datetime.fromisoformat(data["date"])
+        date = timezone.make_aware(datetime.fromisoformat(data["date"]))
+
+        event = Events.objects.create(
+            title=data["title"],
+            date=date,
+            localisation=data["localisation"],
+            description=data["description"],
+            max_participants=data["max_participants"],
+            pending=False,
+            organiser=request.user,
+            active=True
+        )
+
+        return JsonResponse({"status": "ok", "id": event.id})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+@login_required
+@is_admin()
+def create_meetings_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+
+        #date = datetime.fromisoformat(data["date"])
+        date = timezone.make_aware(datetime.fromisoformat(data["date"]))
+
+        meeting = Meetings.objects.create(
+            title=data["title"],
+            date=date,
+            kind=data["kind"],
+            description=data["description"],
+        )
+
+        return JsonResponse({"status": "ok", "id": meeting.id})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

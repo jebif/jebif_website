@@ -1,0 +1,6 @@
+<div>
+    <form action="{% url 'user_calendar' %}" method="GET" class="form-group my-1">
+        {% csrf_token %}
+        <button type="submit" class="btn" style="background-color: #e7a456; color: white;">Calendrier</button>
+    </form>
+</div>

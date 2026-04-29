@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, Events, Participant
+from .models import Article, Category, Subcategory, LinkedImage, WebPlatforms, Events, Participant, Meetings
 from .forms import ArticleAdminForm
 
 import jebif_website.models as website
@@ -55,6 +55,11 @@ admin.site.register(Events, PendingEventAdmin)
 
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
-    list_display = ('title','category', 'subcategory', 'author',)
+    list_display = ('title','category', 'subcategory', 'author','is_draft')
 
 admin.site.register(Article, ArticleAdmin)
+
+@admin.register(Meetings)
+class MeetingsAdmin(admin.ModelAdmin):
+    list_display = ('title', 'kind', 'date')
+    fields = ('title','kind','date','description')

@@ -18,22 +18,21 @@
             <ul class="navbar-nav w-100 align-items-center">
 
                 {% for category in categories_nav %}
-                    <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
-                        <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
-                            href="{% url 'articles_per_category' category.slug %}" 
-                            role="button" 
-                            data-bs-toggle="dropdown-toggle" 
-                            aria-expanded="false">
-                            {{ category.name }}
-                        </a>
-                        {% if category.subcategory.all %}
-                            <ul class="dropdown-menu">
-                                {% for subcat in category.subcategory.all|dictsort:"rank" %}
-                                    <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </li>
+                    {% if category.name != "Other" %}
+                        <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
+                            <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
+                                href="{% url 'articles_per_category' category.slug %}" >
+                                {{ category.name }}
+                            </a>
+                            {% if category.subcategory.all %}
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {% for subcat in category.subcategory.all|dictsort:"rank" %}
+                                        <li><a class="dropdown-item" href="{% url 'articles_per_subcategory' category.slug subcat.slug %}">{{ subcat.name }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endif %}
                 {% endfor %}
 
                 {% if not request.user.is_authenticated %}
@@ -60,6 +59,7 @@
 
                                     {% if request.user.info.is_member %}
                                         {% include 'jebif_election/button_election.html'%}
+                                        {% include 'jebif_users/button_calendar.html'%}
                                     {% endif %}
 
                                 {% include 'jebif_users/button_logout.html'%}
@@ -71,7 +71,7 @@
                         {% include 'jebif_users/button_login.html'%}
                         {% include 'jebif_users/button_registration.html'%}
                         
-                    </il>
+                    </li>
                 {% endif %}
             </ul>
             
@@ -85,7 +85,7 @@
 
 /* Hover uniquement sur les appareils avec souris */
 @media (hover: hover) {
-    .nav-item.dropdown:not(#menu-dropdown):hover .dropdown-menu {
+    .nav-item.dropdown:not(#menu-dropdown):hover > .dropdown-menu {
         display: block;
     }
 }
@@ -93,6 +93,14 @@
 /* Évite le déplacement du menu */
 .nav-item.dropdown .dropdown-menu {
     margin-top: 0;
+    max-width: 80vw;
+    white-space: normal;
+}
+
+/* Get the Subcategory to cut in lines if too long*/
+.dropdown-item {
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* open menu by clic (for mobile) */
@@ -106,6 +114,8 @@
     
     right: 0;
     left: auto;
+    max-width: 80vw;
+    white-space: normal;
     text-align: center;
 }
 #menu-dropdown .dropdown-menu .btn {

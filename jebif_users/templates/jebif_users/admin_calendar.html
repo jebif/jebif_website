@@ -1,0 +1,266 @@
+
+{% extends 'jebif_website/base.html'%}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<style>
+#eventModal {
+    display: none;
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -20%);
+    background: white;
+    padding: 20px;
+    border: 1px solid black;
+    z-index: 1000;
+}
+
+#modalOverlay {
+    display: none;
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+</style>
+{% endblock head %}
+
+
+{% block content %}
+<h1>Calendrier des évènements</h1>
+
+
+<form style="display:none;">
+    {% csrf_token %}
+</form>
+
+<div id="calendar"></div>
+
+<div id="modalOverlay"></div>
+
+<div id="eventModal">
+    <h3>Créer un élément</h3>
+
+    <label>Type :</label>
+    <select id="type">
+        <option value="" selected disabled>-- Choisir un type --</option>
+        <option value="event">Event</option>
+        <option value="meeting">Meeting</option>
+    </select><br><br>
+
+
+    <label for="title">Nom</label><br>
+    <input type="text" id="title" placeholder="Titre"><br><br>
+
+    <label for="description">Description</label><br>
+    <textarea id="description" placeholder="Description"></textarea><br><br>
+
+    <div id="kind_group" style="display:none;">
+        <label for="kind">Type de réunion</label><br>
+        <select id="kind">
+            <option value="OT">Autre</option>
+            <option value="CA">CA</option>
+            <option value="GT">GT</option>
+            <option value="AG">AG</option>
+        </select>
+    </div>
+
+    <div id="localisation_group" style="display:none;">
+        <label for="localisation">Localisation</label><br>
+        <input type="text" id="localisation" placeholder="Ville - lieu">
+    </div><br>
+
+    <div id="max_participants_group" style="display:none;">
+        <label for="max_participants">Nombre maximal de participants</label><br>
+        <input type="text" id="max_participants" placeholder="(-1 pour pas de limite)">
+    </div>
+
+    <br><br>
+
+    <button onclick="submitEvent()">Créer</button>
+    <button onclick="closeModal()">Annuler</button>
+</div>
+
+
+<script>
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+    
+    function openModal(date) {
+        window.selectedDate = date;
+        document.getElementById("eventModal").style.display = "block";
+        document.getElementById("modalOverlay").style.display = "block";
+    }
+
+    function resetForm() {
+        let fields = ["type", "title", "description", "localisation", "max_participants", "kind"];
+
+        fields.forEach(id => {
+            let el = document.getElementById(id);
+            if (el) el.value = "";
+        });
+
+        let elements = ["kind_group", "localisation_group", "max_participants_group"];
+
+        elements.forEach(id => {
+            let el = document.getElementById(id);
+            if (el) el.style.display = "none";
+        });
+    }
+
+    function closeModal() {
+        resetForm();
+        document.getElementById("eventModal").style.display = "none";
+        document.getElementById("modalOverlay").style.display = "none";
+    }
+
+    function submitEvent() {
+
+        let type = document.getElementById("type").value;
+        if (!type) {
+            alert("Veuillez choisir un type");
+            return;
+        }
+        let title = document.getElementById("title").value;
+        if (!title) {
+            alert("Le titre est obligatoire");
+            return;
+        }
+        let description = document.getElementById("description").value;
+        if (!description) {
+            alert("La description est obligatoire");
+            return;
+        }
+        let localisation = document.getElementById("localisation").value;
+        let max_participants = document.getElementById("max_participants").value;
+        let kind = document.getElementById("kind").value;
+        let url = "";
+
+        if (type === "event") {
+            url = "{% url 'create_events' %}";
+
+            if (!localisation) {
+            alert("La localisation est obligatoire");
+                return;
+            }
+
+            if (!max_participants) {
+                alert("Le nombre de participants est obligatoire");
+                return;
+            }
+                
+            fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        date: window.selectedDate,
+                        localisation: localisation,
+                        max_participants: max_participants,
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert("Créé avec succès ✅");
+                        closeModal();
+                        calendar.refetchEvents();
+                    }
+                });
+        } else {
+            url = "{% url 'create_meetings' %}";
+
+            if (!kind) {
+                alert("Veuillez choisir un type de réunion");
+                return;
+            }
+            
+            fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        date: window.selectedDate,
+                        kind: kind,
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert("Créé avec succès ✅");
+                        closeModal();
+                        calendar.refetchEvents();
+                    }
+                });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        var calendarEl = document.getElementById('calendar');
+
+        window.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            selectable: true,
+            editable: true,
+
+            select: function(info) {
+                openModal(info.startStr);
+            },
+
+            eventClick: function(info) {
+                message=""
+                if (info.event.extendedProps.localisation && info.event.extendedProps.max_participants){
+                    message= info.event.title 
+                    +"\nLocalisation : "+ info.event.extendedProps.localisation 
+                    +"\nNombre maximum de participants (-1 = illimité): "+ info.event.extendedProps.max_participants
+                    +"\nDescription : "+ info.event.extendedProps.description
+                } else{
+                    message= info.event.title +"\nDescription : "+ info.event.extendedProps.description
+                }
+                alert(message);
+            },
+
+            events: {
+                url: "{% url 'events_json' %}",
+                failure: function() {
+                    alert("Erreur de chargement des événements");
+                }
+            }
+        });
+    
+        calendar.render();
+        document.getElementById("type").value = "";
+        document.getElementById("type").addEventListener("change", function() {
+            let isMeeting = this.value === "meeting";
+            let isEvent = this.value === "event";
+
+            document.getElementById("kind_group").style.display = isMeeting ? "block" : "none";
+            document.getElementById("localisation_group").style.display = isMeeting ? "none" : "block";
+            document.getElementById("max_participants_group").style.display = isMeeting ? "none" : "block";
+        });
+    });
+</script>
+
+
+{% endblock content %}

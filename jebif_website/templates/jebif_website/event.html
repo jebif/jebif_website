@@ -1,10 +1,17 @@
 {% extends 'jebif_website/base.html' %}
 
+{% load qr_code %}
+
 {% block content %}
     <div class="container">
         <h2>{{ event.title }}</h2>
         <h3>Le {{ event.date }} - {{ event.localisation }}</h3>
         <p>{{ event.description }}</p>
+
+        <!--<img src="{{event.qr_img.url}}" alt="QR_code"/>
+        <a href="{{event.qr_img.url}}">Lien du QR code</a> -->  
+        <img src="{% qr_url_from_text request.build_absolute_uri %}" alt="QR code">
+        <a href="{% qr_url_from_text request.build_absolute_uri %}" target="_blank">Lien du QR code</a>
 
         <a href="{% url 'event_register' event.id %}" class="btn btn-primary">S'inscrire à l'évènement</a>
 
