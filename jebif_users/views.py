@@ -162,6 +162,15 @@ def logout(request):
 class CustomLoginView(LoginView):
     template_name = 'jebif_users/login.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            messages.error(
+                request,
+                f"⚠️ Vous êtes déjà connecté avec le compte \"{request.user.username}\". Si vous tentiez d'accéder à une page, vous n'avez pas les droits pour accéder à cette page."
+            )
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
+
     # def form_valid(self, form):       #Prefer allowing the User to connect. the user gets a banner telling it to verify its account
     #     user = form.get_user()
     #     if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
@@ -356,7 +365,8 @@ def is_admin() :
 @login_required
 @is_admin()
 def button_admin(request):
-    if not (request.user or request.user.info.is_member or request.user.is_superuser):
+    if not (request.user or request.user.info.is_member or request.user.is_superuser):  
+        #won't work, the decorator will always redirect first because of user_passes_test.
         messages.error(request, "❌ Vous n'avez pas accès à cette page.")
         return redirect("/")
     if request.method == 'POST':
@@ -442,7 +452,7 @@ def admin_export_csv( request ) :
 @login_required
 @is_admin()
 def admin_calendar(request):
-    if not (request.user or request.user.info.is_member or request.user.is_superuser):
+    if not (request.user.is_authenticated and request.user.info.is_member and request.user.is_superuser):
         messages.error(request, "❌ Vous n'avez pas accès à cette page.")
         return redirect("/")
     return render(request, "jebif_users/admin_calendar.html")
@@ -479,7 +489,7 @@ def events_json(request):
     
 @login_required
 def user_calendar(request):
-    if not (request.user or request.user.info.is_member):
+    if not (request.user.is_authenticated and request.user.info.is_member):
         messages.error(request, "❌ Vous n'avez pas accès à cette page.")
         return redirect("/")
     return render(request, "jebif_users/user_calendar.html")
