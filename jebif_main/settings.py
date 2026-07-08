@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'tinymce',          #requires: pip install django-tinymce
     'crispy_forms',     #see requirement in README
     'crispy_bootstrap5',
+    'qr_code',      #necessary to generate QR code, requires: pip install django-qr-code
 ]
 
 MIDDLEWARE = [
@@ -191,7 +192,7 @@ LOGIN_REDIRECT_URL = '/'
 HTTP_DOMAIN="http://beta.jebif.fr"
 
 ROOT_URL="/"
-LOGIN_URL = f"/login/"
+LOGIN_URL = f"/users/login/"
 REQUIRE_LOGIN_PATH = LOGIN_URL
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "
 SERVER_EMAIL="admin@beta.jebif.fr"   
