@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'tinymce',          #requires: pip install django-tinymce
     'crispy_forms',     #see requirement in README
     'crispy_bootstrap5',
+    "datetimewidget",
 ]
 
 MIDDLEWARE = [

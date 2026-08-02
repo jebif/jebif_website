@@ -89,7 +89,13 @@ def upload_image(request):
         return JsonResponse({"location": f"{settings.MEDIA_URL}/images/{path}"})
     return JsonResponse({"error": "Invalid request"}, status=400)
 
-
+DEFAULT_KNOW_FROM = [
+    "Discord",
+    "LinkedIn",
+    "Mail",
+    "Bouche à oreille",
+    "Autre"
+]
 @login_required(login_url='login')
 def propose_event_view(request):
     if not (request.user.info.is_member or request.user.is_superuser):
