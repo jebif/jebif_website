@@ -341,9 +341,10 @@ def request_membership(request):
 
 @login_required
 def delete_account(request):
-    user = request.user
-    user.delete()
-    logout(user)
+    if request.method == "POST":
+        user = request.user
+        user.delete()
+        logout(user)
     return redirect("home")
 
 def is_admin() :
