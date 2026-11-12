@@ -1,0 +1,23 @@
+{% extends 'jebif_website/base.html'%}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h2>Envoyer un mail à un groupe d'utilisateurs</h2>
+
+    <p>Le mail partira du compte administrateur vers le groupe choisi. Vous pouvez prévisualiser la liste des destinataires avant l'envoi.</p>
+
+    {% if preview %}
+        <div class="alert alert-info">
+            <strong>{{ preview|length }} destinataire(s) :</strong>
+            <ul class="mb-0">
+                {% for addr in preview %}<li>{{ addr }}</li>{% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="col-lg-8">
+        {% csrf_token %}
+        {{ form|crispy }}
+    </form>
+{% endblock content %}

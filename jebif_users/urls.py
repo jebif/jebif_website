@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/subscription/', views.admin_subscription, name='admin_subscription'),
     path('admin/subscription/accept/<int:info_id>/', views.admin_subscription_accept, name='admin_subscription_accept'),
     path('admin/subscription/reject/<int:info_id>/', views.admin_subscription_reject, name='admin_subscription_reject'),
+    path('admin/mail/', views.admin_mail_view, name='admin_mail'),
     #FOR PASSWORD FORGOTTEN
     #path('password_reset/', auth_views.PasswordResetView.as_view(template_name='jebif_users/password_reset.html'),name='password_reset'),
     path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),

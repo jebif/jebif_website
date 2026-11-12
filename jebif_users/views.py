@@ -15,10 +15,14 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 import binascii
 import csv
 import datetime
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from .models import *
 from .forms import *
+from .admin_mail import send_group_mail, group_recipients
 
 
 # Get emails from "Staff" users.
@@ -449,6 +453,42 @@ def admin_subscription_reject( request, info_id ) :
 
     messages.success(request, "✅ Demande d'adhésion refusée.")
     return redirect("admin_subscription")
+
+
+@is_admin()
+def admin_mail_view(request):
+    """Page admin : rédiger un mail et l'envoyer à un groupe d'utilisateurs."""
+    form = AdminMailForm(request.POST or None)
+    preview = None
+
+    if request.method == 'POST' and form.is_valid():
+        recipients = group_recipients(form.cleaned_data['recipients_group'])
+        if request.POST.get('preview'):
+            # Prévisualisation : on n'envoie pas, on affiche la liste.
+            if recipients:
+                preview = recipients
+            else:
+                messages.warning(request, "Aucun destinataire dans ce groupe.")
+        else:
+            if not recipients:
+                messages.warning(request, "Aucun destinataire dans ce groupe.")
+                return redirect('admin_mail')
+            try:
+                send_group_mail(
+                    subject=form.cleaned_data['subject'],
+                    body=form.cleaned_data['body'],
+                    recipients=recipients,
+                )
+                messages.success(
+                    request,
+                    f"Mail envoyé à {len(recipients)} destinataire(s).",
+                )
+            except Exception:
+                messages.error(request, "Une erreur est survenue lors de l'envoi du mail.")
+                logger.exception("admin_mail_view: send failed")
+            return redirect('admin_mail')
+
+    return render(request, 'jebif_users/admin_mail.html', {'form': form, 'preview': preview})
 
 
 @is_admin()

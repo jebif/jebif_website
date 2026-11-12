@@ -5,6 +5,7 @@ from django.forms import ModelForm, Form, EmailField, ValidationError
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from .models import UserInfo
+from .admin_mail import ADMIN_MAIL_GROUPS
 
 class UserRegisterForm(UserCreationForm):
     helper = FormHelper()
@@ -95,3 +96,17 @@ class UserInfoEmailForm( Form ) :
         except UserInfo.DoesNotExist :
             raise ValidationError(u"E-mail inconnu")
         return info
+
+
+class AdminMailForm(Form):
+    """Formulaire d'envoi d'un mail groupé par un admin."""
+    helper = FormHelper()
+    helper.add_input(Submit('preview', 'Prévisualiser les destinataires', css_class='btn btn-outline-secondary'))
+    helper.add_input(Submit('send_mail', 'Envoyer', css_class='btn btn-primary'))
+
+    recipients_group = forms.ChoiceField(
+        label="Groupe de destinataires",
+        choices=ADMIN_MAIL_GROUPS,
+    )
+    subject = forms.CharField(label="Sujet", max_length=200)
+    body = forms.CharField(label="Message", widget=forms.Textarea(attrs={"rows": 8}))
