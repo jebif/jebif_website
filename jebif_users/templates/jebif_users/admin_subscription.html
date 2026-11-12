@@ -17,8 +17,15 @@
 					<td>{{ info.email }}</td>
 					<td>{{ info.inscription_date }}</td>
 					<td>
-						<a href="accept/{{ info.id }}/">accepter</a> /
-						<a href="reject/{{ info.id }}/">supprimer</a>
+						<form method="post" action="{% url 'admin_subscription_accept' info.id %}" style="display:inline; margin-bottom:0;">
+							{% csrf_token %}
+							<button type="submit" class="btn btn-sm btn-outline-success">accepter</button>
+						</form>
+						/
+						<form method="post" action="{% url 'admin_subscription_reject' info.id %}" style="display:inline; margin-bottom:0;">
+							{% csrf_token %}
+							<button type="submit" class="btn btn-sm btn-outline-danger">supprimer</button>
+						</form>
 					</td>
 				</tr>
 			{% endfor %}

@@ -39,7 +39,7 @@
         <div class="confirm_deletion">
             <form action="{% url 'delete_account' %}" method="post" id="delete_form">
                 {% csrf_token %}
-                <input type="submit" class="confirm btn" style="background:green">Supprimer</a>
+                <input type="submit" class="confirm btn" style="background:green" value="Supprimer">
             </form>
             <a href="#" class="cancel btn" style="background: red">Annuler</a>
         </div>

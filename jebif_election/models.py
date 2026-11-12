@@ -141,11 +141,6 @@ class Vote(models.Model):
         Check if the user as voted, since the Vote can be created in advance to check if there is still missing votes later
         (but the name of the late voters won't be visible).
 
-    Methods
-	-------
-    check_duo_elect_candid()
-        Check if the candidat is in the correct election.
-        Not used yet, shouldn't be needed.
     '''
     class Choices(models.TextChoices):
         OUI = "OUI", "Oui"
@@ -158,15 +153,19 @@ class Vote(models.Model):
     choix = models.CharField(max_length=10, choices=Choices.choices, default=Choices.ABSTENTION)
     date = models.DateTimeField(auto_now_add=True)
     has_voted = models.BooleanField(default=False)
-    
+
+    class Meta:
+        # A member can only vote once per candidate: enforced at the database
+        # level (a check in the view alone is vulnerable to race conditions).
+        constraints = [
+            models.UniqueConstraint(
+                fields=["candidat", "voter"],
+                name="unique_vote_per_candidat_voter",
+            ),
+        ]
+
     def __str__( self ) :
         return f"{self.candidat.election.label}/{self.candidat.label}/{self.voter.user.username}"
-
-    def check_duo_elect_candid(self):
-        #Function Not used yet
-        el_candidat = self.candidat.election.id
-        if el_candidat != self.election.id:    #change that with an assert
-            print("Error: incorrect duo candidat/election.")
 
 
 class PendingCandidates(models.Model):
