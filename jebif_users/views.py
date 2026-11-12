@@ -458,6 +458,9 @@ L’équipe JeBiF (RSG-France)
     messages.success(request, "✅ Adhésion acceptée.")
     return redirect("admin_subscription")
 
+    messages.success(request, "✅ Adhésion acceptée.")
+    return redirect("admin_subscription")
+
 @login_required
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
