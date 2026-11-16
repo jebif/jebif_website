@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
+from tinymce.models import HTMLField    # rich text (TinyMCE), cf. jebif_website/models.py
 from django.db.transaction import atomic
 #from django.db.models.signals import post_save        # Unused, but could be used 
 from django.core.mail import send_mail
@@ -362,3 +363,51 @@ class DatabaseInfo( models.Model ) :
         except IndexError :
             cls.objects.create(version=0)
             return cls.objects.all()[0]
+
+
+class MailSignature( models.Model ) :
+    '''
+    Signature de mail, ajoutée automatiquement à la fin des mails
+    groupés envoyés par un admin (voir ``admin_mail.py`` et ``AdminMailForm``).
+
+    Les signatures sont enregistrées dans l'admin Django et on en choisit
+    une (ou aucune) lors de l'envoi du mail.
+
+    Attributes
+    ----------
+
+    name : str
+        Libellé court de la signature, affiché dans la liste de choix.
+
+    text : str
+        Contenu de la signature (texte riche, édité avec TinyMCE),
+        ajouté à la fin du mail.
+
+    is_active : bool
+        Indique si la signature est proposée dans la liste de choix.
+
+    created : date
+        Date de création de la signature.
+
+    updated : date
+        Date de dernière modification de la signature.
+
+    Methods
+    -------
+
+    __str__()
+        Libellé de la signature.
+    '''
+    name = models.CharField("Nom", max_length=100, unique=True)
+    text = HTMLField("Signature")
+    is_active = models.BooleanField("Active", default=True)
+    created = models.DateTimeField("Créée le", auto_now_add=True)
+    updated = models.DateTimeField("Modifiée le", auto_now=True)
+
+    def __str__( self ) :
+        return self.name
+
+    class Meta :
+        ordering = ["name"]
+        verbose_name = "Signature de mail"
+        verbose_name_plural = "Signatures de mail"

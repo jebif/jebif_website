@@ -20,4 +20,12 @@
         {% csrf_token %}
         {{ form|crispy }}
     </form>
+
+    {% if signature_preview %}
+        <div class="alert alert-secondary col-lg-8">
+            <strong>Signature sélectionnée ({{ signature_preview.name }}) — ajoutée à la fin du mail :</strong>
+            <!-- Signature rédigée en texte riche (TinyMCE) : rendue en HTML ici -->
+            <div class="sig-preview">{{ signature_preview.text|safe }}</div>
+        </div>
+    {% endif %}
 {% endblock content %}

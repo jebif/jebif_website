@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib import messages
 from django.utils.translation import ngettext
 
-from .models import UserInfo
+from .models import UserInfo, MailSignature
 
 
 class UserInline( admin.StackedInline ) :
@@ -146,5 +146,18 @@ class UserInfoAdmin(BaseUserAdmin):
 # Re-register UserInfoAdmin
 admin.site.unregister(User)
 admin.site.register(User, UserInfoAdmin)
+
+
+@admin.register(MailSignature)
+class MailSignatureAdmin( admin.ModelAdmin ) :
+    '''
+    Admin de l'ensemble des signatures de mail utilisables
+    dans la page d'envoi de mail groupé (jebif_users/admin_mail.py).
+    '''
+    list_display = ('name', 'is_active', 'created', 'updated')
+    list_editable = ('is_active',)
+    list_filter = ('is_active',)
+    search_fields = ('name', 'text')
+    ordering = ('name',)
 
 

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from .models import *
 from .forms import *
-from .admin_mail import send_group_mail, group_recipients
+from .admin_mail import send_group_mail, group_recipients, get_signature, html_to_text, has_html_tags
 
 
 # Get emails from "Staff" users.
@@ -457,9 +457,22 @@ def admin_subscription_reject( request, info_id ) :
 
 @is_admin()
 def admin_mail_view(request):
-    """Page admin : rédiger un mail et l'envoyer à un groupe d'utilisateurs."""
+    """Page admin : rédiger un mail et l'envoyer à un groupe d'utilisateurs.
+
+    La signature choisie (enregistrée dans ``MailSignature``) est
+    automatiquement ajoutée à la fin du mail avant l'envoi.
+    """
     form = AdminMailForm(request.POST or None)
     preview = None
+    signature_id = request.POST.get('signature') if request.method == 'POST' else None
+    signature_obj = get_signature(signature_id)
+
+    def rich_bodies(raw_body):
+        """(texte, html) : si le corps est du texte riche, le texte devient
+        la version sans balises (repli pour les clients sans HTML)."""
+        if raw_body and has_html_tags(raw_body):
+            return html_to_text(raw_body), raw_body
+        return raw_body, None
 
     if request.method == 'POST' and form.is_valid():
         recipients = group_recipients(form.cleaned_data['recipients_group'])
@@ -474,21 +487,29 @@ def admin_mail_view(request):
                 messages.warning(request, "Aucun destinataire dans ce groupe.")
                 return redirect('admin_mail')
             try:
+                body, html_body = rich_bodies(form.cleaned_data['body'])
                 send_group_mail(
                     subject=form.cleaned_data['subject'],
-                    body=form.cleaned_data['body'],
+                    body=body,
                     recipients=recipients,
+                    html_body=html_body,
+                    signature=signature_obj,
                 )
                 messages.success(
                     request,
-                    f"Mail envoyé à {len(recipients)} destinataire(s).",
+                    f"Mail envoyé à {len(recipients)} destinataire(s)."
+                    + (f" Signature : {signature_obj.name}." if signature_obj else ""),
                 )
             except Exception:
                 messages.error(request, "Une erreur est survenue lors de l'envoi du mail.")
                 logger.exception("admin_mail_view: send failed")
             return redirect('admin_mail')
 
-    return render(request, 'jebif_users/admin_mail.html', {'form': form, 'preview': preview})
+    return render(
+        request,
+        'jebif_users/admin_mail.html',
+        {'form': form, 'preview': preview, 'signature_preview': signature_obj},
+    )
 
 
 @is_admin()

@@ -4,8 +4,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm, Form, EmailField, ValidationError
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
-from .models import UserInfo
-from .admin_mail import ADMIN_MAIL_GROUPS
+from tinymce.widgets import TinyMCE
+
+from .models import UserInfo, MailSignature
+from .admin_mail import ADMIN_MAIL_GROUPS, NO_SIGNATURE
 
 class UserRegisterForm(UserCreationForm):
     helper = FormHelper()
@@ -109,4 +111,21 @@ class AdminMailForm(Form):
         choices=ADMIN_MAIL_GROUPS,
     )
     subject = forms.CharField(label="Sujet", max_length=200)
-    body = forms.CharField(label="Message", widget=forms.Textarea(attrs={"rows": 8}))
+    # Texte riche (TinyMCE) : le mail est envoyé en HTML avec un repli
+    # texte brut généré automatiquement (voir admin_mail.html_to_text).
+    body = forms.CharField(label="Message", widget=TinyMCE(attrs={"rows": 8}))
+    signature = forms.ChoiceField(
+        label="Signature",
+        required=False,
+        initial=NO_SIGNATURE,
+        help_text="Signature ajoutée automatiquement à la fin du mail.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [(NO_SIGNATURE, "Aucune signature")]
+        choices += [
+            (str(sig.id), sig.name)
+            for sig in MailSignature.objects.filter(is_active=True).order_by("name")
+        ]
+        self.fields["signature"].choices = choices
