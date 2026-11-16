@@ -177,12 +177,21 @@ class UserInfo( models.Model ) :
     
     # Check if the user has verified their account
     verified = models.BooleanField(default=False)
+    stop_membership_reminder = models.BooleanField(default=False)
 
     def __str__( self ) :
         return f"{self.firstname} {self.lastname} <{self.user.email}> {'(inactive)' if not self.is_member else ''}"
 
     class Meta :
         verbose_name = "UserInfo"
+
+    def is_complete(self) -> bool:
+        return  self.firstname != "" and \
+                self.lastname != "" and \
+                self.laboratory != "" and \
+                self.city_name != "" and \
+                self.city_cp != "" and \
+                self.position != ""
 
     def get_end_membership(self,base=None) :
         '''

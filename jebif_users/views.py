@@ -329,7 +329,8 @@ def profile_view(request):
         return redirect("home")
 
     remaining_time = (user_info.end_membership - today).days
-    show_button_membership = (user_info.want_member == False) and ((remaining_time <= 30) or (user_info.is_member == False))
+
+    show_ask_membership = (user_info.want_member == False) and (user_info.is_member == False)
     
     if request.method == "POST":
         user_form = UserModificationForm(request.POST, instance=request.user, user=request.user)
@@ -345,22 +346,30 @@ def profile_view(request):
         user_form = UserModificationForm(instance=user)        #retrieve the known info
         info_form = UserInfoForm(instance=user_info)
 
-    return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
+    return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_ask_membership': show_ask_membership, 'remaining_time': remaining_time,})
 
 @login_required
 def request_membership(request):
     #Function for user to request the membership
-    user_info = getattr(request.user, "info", None)
-    if user_info is None:
-        messages.error(request, "⚠️ Ton profil est incomplet, contacte un administrateur.")
-        return redirect("home")
+    user_info: UserInfo = getattr(request.user, "info", None)
+    if not user_info.is_complete():
+        messages.error(request, "⚠️ Ton profil est incomplet, remplis tous les champs avec * pour pouvoir demander l'adhésion.")
+        return redirect("profile")
 
     if request.method == "POST":
         user_info.want_member = True
         user_info.save()
         if settings.DEBUG == False:
             ask_membership() #function to send a mail to admin
+        messages.success(request, "✅ Ta demande d'adhésion a bien été envoyée à l'association!")
     return redirect('profile')
+
+@login_required
+def stop_membership_reminder(request):
+    user_info: UserInfo = getattr(request.user, "info", None)
+    user_info.stop_membership_reminder = True
+    user_info.save()
+    return redirect(request.GET.get("next", "home"))
 
 @login_required
 def delete_account(request):
@@ -435,16 +444,15 @@ L’équipe JeBiF (RSG-France)
 @is_admin()
 def admin_subscription_reject( request, info_id ) :
     #Function for the admin page in the website (not the interface) to reject subscription.
-    #POST only: a state-changing action must not be reachable with a plain GET link (CSRF).
     if request.method != "POST":
         return redirect("admin_subscription")
 
     info = get_object_or_404(UserInfo, id=info_id)
-    if info.is_deleted:
+    if not info.want_member:
         messages.info(request, "Cette demande est déjà refusée.")
         return redirect("admin_subscription")
 
-    info.is_deleted = True
+    info.want_member = False
     info.save()
 
     messages.success(request, "✅ Demande d'adhésion refusée.")
