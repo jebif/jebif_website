@@ -30,6 +30,9 @@
         <br>
         <br>
 
+        <!-- Messages d'action (succès/erreur/...) affichés clairement en haut de page -->
+        {% include 'jebif_website/messages.html' %}
+
         <div class="container my-3 mt-3">
             <div class="row justify-content-center">
                 <div class="col-11 col-lg-11 bg-light shadow rounded-3 p-4" style="background-color: #ffffff;">
@@ -42,7 +45,6 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-md-8 col-12 mx-md-auto py-md-5">
-                                {% include 'jebif_website/messages.html' %}
                                 {% block content %}
                                 {% endblock %}
                             </div>
