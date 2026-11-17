@@ -5,7 +5,7 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('tinymce/', include('tinymce.urls')),
     path('article/<slug:slug>/', ArticleView.as_view(), name="article"),
-    path("event/<int:event_id>", get_event_view, name="event"),
+    path("event/<int:event_id>/", get_event_view, name="event"),
     path('event_form/', propose_event_view, name='event_form'),
     path('contact_form/', contact_view, name='contact_form'),
     path('create_events/', create_events_view, name='create_events'),

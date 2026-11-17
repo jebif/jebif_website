@@ -41,6 +41,12 @@ class UserModificationForm(forms.ModelForm):
         self.user = kwargs.pop("user", None)  # pour vérifier le mot de passe actuel
         super().__init__(*args, **kwargs)
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email and User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Cette adresse mail est déjà utilisée par un autre compte.")
+        return email
+
     def clean(self):
         cleaned_data = super().clean()    #NOT SURE IF SAFE
         current_password = cleaned_data.get("current_password")
