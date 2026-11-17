@@ -9,6 +9,9 @@
     <p><a href="{% url 'admin_subscription' %}"><h4>Page de validation des adhésion</h4></a></p>
 
     <p><a href="/admin"><h4>Dashboard Django</h4></a></p>
+
+    <p><a href="{% url 'admin_calendar' %}"><h4>Page du calendrier pour ajouts</h4></a></p>
+
     <div>
         <form action="{% url 'admin_export_csv' %}" method="GET" class="form-group my-3 col-6">
             {% csrf_token %}

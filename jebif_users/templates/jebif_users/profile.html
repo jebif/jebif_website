@@ -15,20 +15,33 @@
             {{ info_form | crispy }}
             <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
         </form>
-        {% if show_button_membership %}
-            <p><h4>Ton adhésion expire bientôt (moins de 30 jours) ou tu n'es pas adhérent.</h4></p>
-            {% if remaining_time %}
+        {% if request.user.info.is_member %}
+            <h4>Adhésion
+                {% if remaining_time <= 30 %}
+                bientôt expirée !
+                {% else %}
+                en cours
+                {% endif %}
+            </h4>
                 Temps restant: {{remaining_time}} jour(s).
-            {% else %}
-                Tu n'es pas (ou plus) adhérent.
+            
+            {% if remaining_time <= 30 %}
+                <form method="post" action="{% url 'request_membership' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Renouveler l'adhésion pour un an</button>
+                </form>
             {% endif %}
+        {% elif not request.user.info.want_member %}
+            <h4>Tu n'es pas adhérent.e !</h4>
+
+            <p>L'adhésion est gratuite et valable pour une durée d'un an, renouvelable sur cette page chaque année.</p>
+
             <form method="post" action="{% url 'request_membership' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
+                <button type="submit" class="btn btn-primary">Demander à adhérer</button>
             </form>
-
         {% elif request.user.info.want_member %}
-            <p><h4>Adhésion</h4></p>
+            <h4>Adhésion</h4>
             <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
 
         {% endif %}
@@ -39,7 +52,7 @@
         <div class="confirm_deletion">
             <form action="{% url 'delete_account' %}" method="post" id="delete_form">
                 {% csrf_token %}
-                <input type="submit" class="confirm btn" style="background:green">Supprimer</a>
+                <input type="submit" class="confirm btn" style="background:green" value="Supprimer">
             </form>
             <a href="#" class="cancel btn" style="background: red">Annuler</a>
         </div>

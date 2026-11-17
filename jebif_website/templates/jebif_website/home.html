@@ -5,9 +5,11 @@
             {% for article in articles %}
 
                 {% if article %}
+                    {% if article.is_draft == False %}
                         <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
                         <div>{{article.content | safe | truncatewords_html:100 }}</div>
                         <hr class="my-4"> 
+                    {% endif %}
                 {% endif %}
 
             {% endfor %}

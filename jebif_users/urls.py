@@ -1,9 +1,10 @@
+from jebif_users.views import stop_membership_reminder
 from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView, CustomPasswordResetView, resend_validation_mail
-
+from .views import admin_calendar, events_json, user_calendar
 
 urlpatterns = [
     path('login/', CustomLoginView.as_view(next_page='home'), name='login'),
@@ -16,11 +17,16 @@ urlpatterns = [
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),
     path('delete_account/', delete_account, name="delete_account"),
+    path('user_calendar/', user_calendar, name="user_calendar"),
+    path('button_calendar/', user_calendar, name="button_calendar"),
+    path("stop_membership_reminder", stop_membership_reminder, name="stop_membership_reminder"),
     #ADMIN IN SITE
     path('admin/export/csv/', views.admin_export_csv, name='admin_export_csv'),
     path('button_admin/', button_admin, name='button_admin'),
     path('admin_home/', admin_home_view, name='admin_home'),
     path('admin/subscription/', views.admin_subscription, name='admin_subscription'),
+    path('admin/calendar/', views.admin_calendar, name='admin_calendar'),
+    path('events-json/', views.events_json, name='events_json'),
     path('admin/subscription/accept/<int:info_id>/', views.admin_subscription_accept, name='admin_subscription_accept'),
     path('admin/subscription/reject/<int:info_id>/', views.admin_subscription_reject, name='admin_subscription_reject'),
     #FOR PASSWORD FORGOTTEN

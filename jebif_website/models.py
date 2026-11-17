@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+import qrcode
+
 class Category(models.Model):
     '''
 	Object representing a Category for an Article.
@@ -126,7 +128,7 @@ class Article(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    featured = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name='likes', blank=True)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
@@ -232,8 +234,16 @@ class Events(models.Model):
     user : str
         Who proposed this event
 
+    max_participants: int
+        How many people can attend the event
+
     pending : bool
         Has this event been seen (and judged). Pending: not judged yet. Not Pending: Either validated or unvalidated.
+
+    active : bool
+        Is this event online
+
+    
     Methods
 	-------
     '''
@@ -248,6 +258,16 @@ class Events(models.Model):
 
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
+
+    """def save(self, *args, **kwargs):
+        if not self.qr_img:
+            #img = qrcode.make('Some data here')
+            #type(img)  # qrcode.image.pil.PilImage
+            #img.save("some_file.png")
+            pass
+        self.full_clean()
+        super().save(*args, **kwargs)"""
+        
     
 class Participant(models.Model):
     """
@@ -289,3 +309,46 @@ class Participant(models.Model):
 
     #def is_from_social(self):  #exemple to show why use variables
     #   return self.know_from in {self.DISCORD, self.LINKEDIN}
+
+
+class Meetings(models.Model):
+    '''
+	Meetings of the JeBiF staff.
+	...
+
+	Attributes
+	----------
+    title : str
+        Name of the Event
+
+    date : date object
+        When is the opening of the event
+
+    description : str
+        What is the content of the event
+    
+    Methods
+	-------
+    '''
+    CA = "CA"
+    GT = "GT"
+    AG = "AG"
+    OTHER = "OT"
+    KIND_CHOICES = {CA:"Conseil d'administration", GT:"Groupe de Travail", AG:"Assemblée Générale", OTHER:"Autre"}
+    COLOR_CHOICES = {CA:"red", GT:"blueviolet", AG:"green", OTHER:"brown"}
+    NEW_COLOR_CHOICES = [{"CA": "red", "GT": "blueviolet", "AG":"green", "OT": "brown"}]
+    title = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    kind = models.CharField("Type de réunion", max_length=2, choices=KIND_CHOICES, blank=True)
+    description = models.TextField("Description")
+    color = models.CharField("Couleur", max_length=2, choices=COLOR_CHOICES, default="brown", blank=True)
+
+    def __str__( self ) :
+        return f"{self.title} - {self.date}"
+
+    def save(self, *args, **kwargs):
+        NEW_COLOR_CHOICES = {"CA": "red", "GT": "blueviolet", "AG":"green", "OT": "brown"}
+        if self.kind:
+            key = self.kind
+            self.color = str(NEW_COLOR_CHOICES[self.kind])
+        super().save(*args, **kwargs)

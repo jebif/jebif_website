@@ -1,9 +1,10 @@
 {% extends 'jebif_website/base.html' %}
 
 {% block content %}
-
-                <div>
+            {% if article.is_draft == False %}
+                <div class="article-content">
                     <h3>{{article.title}}</h3>
+                    <p>Publié le : {{article.date}}</p>
                     {{article.content|safe}}
                     {% if article.pdf %}
                         <a href="{{ article.pdf.url }}" target="_blank">
@@ -11,5 +12,5 @@
                         </a>
                     {% endif %}
                 </div>
-
+            {% endif %}
 {% endblock %}

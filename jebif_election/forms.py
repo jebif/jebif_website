@@ -32,7 +32,8 @@ class NewVoteForm(forms.Form):
         cleaned_data = super().clean()
 
         # Check that user has rights
-        if (self.user and not self.user.info.is_member) or (not self.user):
+        user_info = getattr(self.user, "info", None) if self.user else None
+        if (not self.user) or not (user_info and user_info.is_member):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
 
         return cleaned_data
@@ -61,7 +62,8 @@ class NewCandidateForm(forms.ModelForm):
         cleaned_data = super().clean()
         election = cleaned_data.get("election")
         # Check if user is a member
-        if (self.user and not self.user.info.is_member) or (not self.user):
+        user_info = getattr(self.user, "info", None) if self.user else None
+        if (not self.user) or not (user_info and user_info.is_member):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
         
         # Check if another candidature from the user already exist

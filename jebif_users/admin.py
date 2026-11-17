@@ -29,9 +29,9 @@ class WantMemberFilter(admin.SimpleListFilter):
 
 	def queryset(self, request, queryset):
 		if self.value() == 'yes':
-			return queryset.filter(userinfo__want_member=True)
+			return queryset.filter(info__want_member=True)
 		if self.value() == 'no':
-			return queryset.filter(userinfo__want_member=False)
+			return queryset.filter(info__want_member=False)
 		return queryset
 	
 
@@ -47,19 +47,22 @@ class IsDeletedFilter(admin.SimpleListFilter):
 
 	def queryset(self, request, queryset):
 		if self.value() == 'yes':
-			return queryset.filter(userinfo__is_deleted=True)
+			return queryset.filter(info__is_deleted=True)
 		if self.value() == 'no':
-			return queryset.filter(userinfo__is_deleted=False)
+			return queryset.filter(info__is_deleted=False)
 		return queryset
 
 
 @admin.action(description="Renew or Grant Membership")
-def make_member(self, request, queryset):
+def make_member(request, queryset):
 	count_user = 0
 	for obj in queryset:
-		obj.info.re_new_membership()
+		info = getattr(obj, "info", None)
+		if info is None:
+			continue
+		info.re_new_membership()
 		count_user += 1
-	self.message_user(
+	messages.success(
             request,
             ngettext(
                 "%d utilisateur a été marqué comme adhérent avec succés.",
@@ -67,19 +70,20 @@ def make_member(self, request, queryset):
                 count_user,
             )
             % count_user,
-            messages.SUCCESS,
         )
 
 
 @admin.action(description="Mark as Deleted Member")
-def admin_mark_deleted(self, request, queryset):
+def admin_mark_deleted(request, queryset):
 	count_user = 0
 	for obj in queryset:
-		obj.info.mark_deleted()
+		info = getattr(obj, "info", None)
+		if info is not None:
+			info.mark_deleted()
 		obj.is_active = False	#Account should be inaccessible to user
 		obj.save()
 		count_user += 1
-	self.message_user(
+	messages.success(
             request,
             ngettext(
                 "%d utilisateur a été marqué comme étant deleted avec succés.",
@@ -87,14 +91,13 @@ def admin_mark_deleted(self, request, queryset):
                 count_user,
             )
             % count_user,
-            messages.SUCCESS,
         )
 
 class UserInfoAdmin(BaseUserAdmin):
 	inlines = [UserInline]
 	list_display = ('username', 'firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
 	list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
-	search_fields = ('firstname', 'lastname', 'email', 'user__username')
+	search_fields = ('username', 'first_name', 'last_name', 'email')
 	actions = [make_member, admin_mark_deleted] #not usefull if not defined outside and before?
 
 	
