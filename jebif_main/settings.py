@@ -32,7 +32,8 @@ SECRET_KEY = env("SECRET_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Absolute path to the directory that holds media.
-MEDIA_ROOT = os.path.join(env("STATIC_DIR"), "media")
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -43,8 +44,19 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 ALLOWED_HOSTS = ["localhost","127.0.0.1","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
-CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
+
+# Cookies: secure by default (production); set COOKIE_SECURE=False for local HTTP dev
+COOKIE_SECURE = env.bool("COOKIE_SECURE", default=True)
+SESSION_COOKIE_SECURE = COOKIE_SECURE
+CSRF_COOKIE_SECURE = COOKIE_SECURE
+
+# Security hardening (enable HSTS / SSL redirect in production via env)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)  # usually behind a proxy
 
 SITE_ID = 1
 # Application definition
@@ -100,8 +112,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'jebif_main.wsgi.application'
-SESSION_COOKIE_SECURE=True
-CSRF_COOKIE_SECURE=True
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -151,7 +161,6 @@ USE_TZ = True
 STATIC_URL = '/staticfiles/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Directory with static files 
     os.path.join(BASE_DIR, 'jebif_website/static'),
 ]
 
@@ -175,7 +184,6 @@ TINYMCE_DEFAULT_CONFIG = {
                 bullist numlist outdent indent | removeformat | \
                 link image code codesample media | bullist numlist | \
                 emoticons | table tablecellprops tableprops | insertdatetime help",
-    "automatic_uploads": True,
     "file_picker_types": "image",
     "images_upload_url": "/upload_image/",  # a Django view to upload images
 }
@@ -189,13 +197,14 @@ LOGIN_REDIRECT_URL = '/'
 
 
 #### Settings from old repos, for different aspects of the website 
-HTTP_DOMAIN="http://beta.jebif.fr"
+HTTP_DOMAIN = env("HTTP_DOMAIN", default="https://jebif.fr")  # domain used in e-mail links
 
-ROOT_URL="/"
-LOGIN_URL = f"/login/"
-REQUIRE_LOGIN_PATH = LOGIN_URL
+LOGIN_URL = "/users/login/"          # real login URL (was "/login/", which does not exist)
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "
-SERVER_EMAIL="admin@beta.jebif.fr"   
+
+# Single source of truth for the sender address (was a mix of beta/hardcoded addresses)
+EMAIL_FROM = env("EMAIL_FROM", default="no-reply@jebif.fr")
+SERVER_EMAIL = EMAIL_FROM
 
 
 #### Configuration for emails
@@ -205,13 +214,13 @@ if DEBUG:
 else:
 # Only for prod (whole set, need modifications):
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")    #or: EMAIL_HOST= env("EMAIL_HOST")
-    EMAIL_PORT = os.environ.get("EMAIL_PORT", 587)                 #or: EMAIL_PORT= env("EMAIL_PORT")
+    EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+    EMAIL_PORT = env.int("EMAIL_PORT", default=587)
     EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 
-DEFAULT_FROM_EMAIL = "admin@beta.jebif.fr"
+DEFAULT_FROM_EMAIL = EMAIL_FROM
 
 #ADMINS = os.environ.get("ADMINS")
 

@@ -1,11 +1,22 @@
-
-
 {% if messages %}
-    <ul class="messages">
+    <div class="container my-3">
         {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-                {{ message }}
-            </li>
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-circle-xmark me-2"></i>
+            {% elif message.tags == 'warning' %}
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            {% elif message.tags == 'success' %}
+                <div class="alert alert-success d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i>
+            {% else %}
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="fa-solid fa-circle-info me-2"></i>
+            {% endif %}
+            <div class="flex-grow-1">{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 {% endif %}

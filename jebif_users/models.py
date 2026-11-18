@@ -177,22 +177,21 @@ class UserInfo( models.Model ) :
     
     # Check if the user has verified their account
     verified = models.BooleanField(default=False)
+    stop_membership_reminder = models.BooleanField(default=False)
 
     def __str__( self ) :
         return f"{self.firstname} {self.lastname} <{self.user.email}> {'(inactive)' if not self.is_member else ''}"
 
-    def latter_membership( self ) :
-        '''
-        From old repos, not deleted yet because used in expire_adhesion.py that still need to be reworked.
-        '''
-        try :
-            return User.objects.filter(info=self).order_by("-date_begin")[0]
-        except IndexError :
-            print(f"No membership for {self} !")
-            raise
-
     class Meta :
         verbose_name = "UserInfo"
+
+    def is_complete(self) -> bool:
+        return  self.firstname != "" and \
+                self.lastname != "" and \
+                self.laboratory != "" and \
+                self.city_name != "" and \
+                self.city_cp != "" and \
+                self.position != ""
 
     def get_end_membership(self,base=None) :
         '''
@@ -266,9 +265,8 @@ le site de JeBiF, dans ta page Profile.
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """
-            msg_from = "NO-REPLY@jebif.fr"
             msg_to = self.email
-            send_mail(msg_subj, msg_txt, msg_from, msg_to)
+            send_mail(msg_subj, msg_txt, settings.DEFAULT_FROM_EMAIL, msg_to)
 
     def mark_deleted(self):
         self.is_member = False
@@ -303,7 +301,7 @@ L’équipe JeBiF (RSG-France)
             return None
         else :
             passwd = User.objects.make_random_password(8)
-            base_login = slugify(self.firstname)[0] + \
+            base_login = (slugify(self.firstname)[:1] or "u") + \
                             slugify(self.lastname)[:7]
             login = base_login
             salt = 2

@@ -1,3 +1,4 @@
+from jebif_users.views import stop_membership_reminder
 from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
@@ -16,6 +17,7 @@ urlpatterns = [
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),
     path('delete_account/', delete_account, name="delete_account"),
+    path("stop_membership_reminder", stop_membership_reminder, name="stop_membership_reminder"),
     #ADMIN IN SITE
     path('admin/export/csv/', views.admin_export_csv, name='admin_export_csv'),
     path('button_admin/', button_admin, name='button_admin'),

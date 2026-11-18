@@ -32,7 +32,9 @@ class NewEventForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         # Check if user is a member
-        if (self.user and not (self.user.info.is_member or self.user.is_superuser)) or (not self.user):
+        user_info = getattr(self.user, "info", None) if self.user else None
+        is_member = bool(user_info and user_info.is_member)
+        if (not self.user) or (not (is_member or self.user.is_superuser)):
             raise forms.ValidationError("❌ Vous ne pouvez pas remplir ce formulaire.")
 
         # If the user is a superuser, validate automatically the event
@@ -87,7 +89,7 @@ class ParticipantForm(forms.ModelForm):
                     "❌ Vous vous êtes déjà inscrit à cet événement."
                 )
         else:
-            if self.user:
+            if self.user is not None and self.user.is_authenticated:
                 cleaned_data["user"] = self.user
             
         return cleaned_data
@@ -103,8 +105,10 @@ class ContactForm(forms.Form):
     # Anti-bot field (honeypot)
     website_pot = forms.CharField(required=False, widget=forms.HiddenInput)
 
-    def clean_website(self):
-        data = self.cleaned_data['website_pot']
+    def clean_website_pot(self):
+        # Honeypot: the method name MUST match the field name (website_pot),
+        # otherwise it is never called and bots are not detected.
+        data = self.cleaned_data.get('website_pot')
         if data:
             raise forms.ValidationError("Spam détecté.")
         return data
