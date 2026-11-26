@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from django.utils.text import slugify
 
 from jebif_website.models import LinkedImage, WebPlatforms
 
@@ -13,7 +12,7 @@ class Command(BaseCommand):
     def create_platforms(self):
         default_platforms = [
             ["BlueSky", "RSG France - JeBiF", "https://bsky.app/profile/jebif.bsky.social"],
-            ["LinkedIn", "JeBiF_RSG_France", "http://www.linkedin.com/groups?gid=1806906"],
+            ["LinkedIn", "JeBiF_RSG_France", "https://www.linkedin.com/groups?gid=1806906"],
             ["Discord", "RSG France - JeBiF", "https://discord.gg/4eeptXAkcN"]
         ]
 
@@ -22,15 +21,15 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"✅ Platform added : {plat}")
             else:
-                self.stderr.write(f"Failed to add platform {plat}")
+                self.stdout.write(f"Platform already exists : {plat}")
     
     def create_links(self):
         default_links = [
-            ["ISCB", "images/linked_images/iscb_logo.jpg","http://www.iscb.org/"],
-            ["ISCB-SC", "images/linked_images/iscb_student_logo.png","http://www.iscbsc.org/"],
-            ["GDR BIMMM", "images/linked_images/gdrbim.jpg","http://www.gdr-bim.cnrs.fr/"],
-            ["SFBI", "images/linked_images/SFBI_logo_without_text.png","http://www.sfbi.fr/"],
-            ["Bioinfo-fr", "images/linked_images/bioinfo-fr.png","http://bioinfo-fr.net/"],
+            ["ISCB", "images/linked_images/iscb_logo.jpg","https://www.iscb.org/"],
+            ["ISCB-SC", "images/linked_images/iscb_student_logo.png","https://www.iscbsc.org/"],
+            ["GDR BIMMM", "images/linked_images/gdrbim.jpg","https://www.gdr-bim.cnrs.fr/"],
+            ["SFBI", "images/linked_images/SFBI_logo_without_text.png","https://www.sfbi.fr/"],
+            ["Bioinfo-fr", "images/linked_images/bioinfo-fr.png","https://bioinfo-fr.net/"],
             ["Bioinformations", "images/linked_images/bioinformations.png","http://www.bioinformations.fr/"]
         ]
 
@@ -39,4 +38,4 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"✅ Link to partner added : {link}")
             else:
-                self.stderr.write(f"Failed to add partner {link}")
+                self.stdout.write(f"Link to partner already exists : {link}")

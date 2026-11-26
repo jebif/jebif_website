@@ -59,6 +59,8 @@
 
                                     {% if request.user.info.is_member %}
                                         {% include 'jebif_election/button_election.html'%}
+                                    {% endif %}
+                                    {% if request.user.is_staff or request.user.info.is_active_member %}
                                         {% include 'jebif_users/button_calendar.html'%}
                                     {% endif %}
 
@@ -126,7 +128,7 @@
 
 </style>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 
 document.querySelectorAll(".nav-item.dropdown > a").forEach(link => {
     link.addEventListener("click", function(e) {

@@ -1,0 +1,29 @@
+{% with info=request.user.info %}
+{% if info.should_ask_membership and request.resolver_match.url_name != 'profile' and request.resolver_match.url_name != 'button_profile' %}
+<div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 my-3" role="alert">
+    <div>
+        {% if info.membership_expired %}
+            <strong>Ton adhésion à JeBiF a expiré le {{ info.end_membership|date:"d/m/Y" }}.</strong>
+            Pense à la renouveler !
+        {% else %}
+            <strong>Tu n'es pas (ou plus) adhérent·e de JeBiF.</strong>
+            Demande ton adhésion !
+        {% endif %}
+        L'adhésion est gratuite et dure un an.
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <form method="post" action="{% url 'request_membership' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">
+                {% if info.membership_expired %}Renouveler mon adhésion{% else %}Demander l'adhésion{% endif %}
+            </button>
+        </form>
+        <form method="post" action="{% url 'stop_membership_reminder' %}" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-link btn-sm">Ne plus me le rappeler</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endwith %}

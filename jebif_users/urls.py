@@ -1,25 +1,24 @@
-from jebif_users.views import stop_membership_reminder
 from django.urls import path
 from .views import RegisterView, VerifyView, AdhesionView
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import profile_view, request_membership, admin_home_view, button_admin, delete_account, CustomLoginView, CustomPasswordResetView, resend_validation_mail
-from .views import admin_calendar, events_json, user_calendar
+from .views import admin_calendar, events_json, user_calendar, stop_membership_reminder
 
 urlpatterns = [
     path('login/', CustomLoginView.as_view(next_page='home'), name='login'),
     path('button_logout/', auth_views.LogoutView.as_view(next_page='home'), name='button_logout'),
     path('register/', RegisterView.as_view(), name='register'),
     path('adhesion/', AdhesionView.as_view(), name='adhesion'),
-    path("resend_verify", resend_validation_mail, name="resend_verify"),
-    path("verify/<uid>/<token>_<adhere>", VerifyView.as_view(), name="verify"),
+    path("resend_verify/", resend_validation_mail, name="resend_verify"),
+    path("verify/<str:token>/", VerifyView.as_view(), name="verify"),
     path('profile/', profile_view, name='profile'),
     path('button_profile/', profile_view, name='button_profile'),
     path('request_membership/', request_membership, name='request_membership'),
     path('delete_account/', delete_account, name="delete_account"),
     path('user_calendar/', user_calendar, name="user_calendar"),
     path('button_calendar/', user_calendar, name="button_calendar"),
-    path("stop_membership_reminder", stop_membership_reminder, name="stop_membership_reminder"),
+    path("stop_membership_reminder/", stop_membership_reminder, name="stop_membership_reminder"),
     #ADMIN IN SITE
     path('admin/export/csv/', views.admin_export_csv, name='admin_export_csv'),
     path('button_admin/', button_admin, name='button_admin'),

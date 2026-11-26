@@ -23,7 +23,8 @@ class SubcategoryAdmin(admin.ModelAdmin):
 
 class PendingEventAdmin(admin.ModelAdmin):
     model=website.Events
-    list_display = ('organiser', 'title', 'pending',)
+    list_display = ('organiser', 'title', 'date', 'pending', 'active')
+    list_filter = ('pending', 'active')
     actions = ['validate_event', 'reject_event',]
 
     @admin.action(description="Validate event")
@@ -45,6 +46,7 @@ class PendingEventAdmin(admin.ModelAdmin):
         for pending in queryset:
             if pending.pending==True:
                 pending.pending=False
+                pending.active=False    # rejected events are not public
                 pending.save()
                 count += 1
             else:
@@ -56,6 +58,8 @@ admin.site.register(Events, PendingEventAdmin)
 class ArticleAdmin(admin.ModelAdmin):
     form = ArticleAdminForm
     list_display = ('title','category', 'subcategory', 'author','is_draft')
+    list_filter = ('is_draft', 'category')
+    list_select_related = ('category', 'subcategory', 'author')
 
 admin.site.register(Article, ArticleAdmin)
 

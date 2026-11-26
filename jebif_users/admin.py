@@ -8,61 +8,62 @@ from .models import UserInfo
 
 
 class UserInline( admin.StackedInline ) :
-	'''
-	
-	'''
-	model = UserInfo
-	can_delete = False
-	extra = 0
-	fields = ('firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership', 'know_from')
+    '''
+    Show the UserInfo fields in the page of a User.
+    '''
+    model = UserInfo
+    can_delete = False
+    extra = 0
+    fields = ('firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership', 'know_from')
 
 
 class WantMemberFilter(admin.SimpleListFilter):
-	title = "(Re)Demande d'adhésion"
-	parameter_name = 'want_member'
+    title = "(Re)Demande d'adhésion"
+    parameter_name = 'want_member'
 
-	def lookups(self, request, model_admin):
-		return (
-			('yes', 'Oui'),
-			('no', 'Non'),
-		)
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Oui'),
+            ('no', 'Non'),
+        )
 
-	def queryset(self, request, queryset):
-		if self.value() == 'yes':
-			return queryset.filter(info__want_member=True)
-		if self.value() == 'no':
-			return queryset.filter(info__want_member=False)
-		return queryset
-	
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(info__want_member=True)
+        if self.value() == 'no':
+            return queryset.filter(info__want_member=False)
+        return queryset
+    
 
 class IsDeletedFilter(admin.SimpleListFilter):
-	title = "Supprimé"
-	parameter_name = 'is_deleted'
+    title = "Supprimé"
+    parameter_name = 'is_deleted'
 
-	def lookups(self, request, model_admin):
-		return (
-			('yes', 'Oui'),
-			('no', 'Non'),
-		)
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Oui'),
+            ('no', 'Non'),
+        )
 
-	def queryset(self, request, queryset):
-		if self.value() == 'yes':
-			return queryset.filter(info__is_deleted=True)
-		if self.value() == 'no':
-			return queryset.filter(info__is_deleted=False)
-		return queryset
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(info__is_deleted=True)
+        if self.value() == 'no':
+            return queryset.filter(info__is_deleted=False)
+        return queryset
 
 
 @admin.action(description="Renew or Grant Membership")
-def make_member(request, queryset):
-	count_user = 0
-	for obj in queryset:
-		info = getattr(obj, "info", None)
-		if info is None:
-			continue
-		info.re_new_membership()
-		count_user += 1
-	messages.success(
+def make_member(modeladmin, request, queryset):
+    count_user = 0
+    for obj in queryset:
+        info = getattr(obj, "info", None)
+        if info is None:
+            continue
+        if not info.re_new_membership():
+            messages.warning(request, f"Le mail de confirmation n'a pas pu être envoyé à {info.email}.")
+        count_user += 1
+    messages.success(
             request,
             ngettext(
                 "%d utilisateur a été marqué comme adhérent avec succés.",
@@ -74,16 +75,19 @@ def make_member(request, queryset):
 
 
 @admin.action(description="Mark as Deleted Member")
-def admin_mark_deleted(request, queryset):
-	count_user = 0
-	for obj in queryset:
-		info = getattr(obj, "info", None)
-		if info is not None:
-			info.mark_deleted()
-		obj.is_active = False	#Account should be inaccessible to user
-		obj.save()
-		count_user += 1
-	messages.success(
+def admin_mark_deleted(modeladmin, request, queryset):
+    count_user = 0
+    for obj in queryset:
+        if obj.pk == request.user.pk:
+            messages.error(request, "Tu ne peux pas désactiver ton propre compte.")
+            continue
+        info = getattr(obj, "info", None)
+        if info is not None:
+            info.mark_deleted()
+        obj.is_active = False   #Account should be inaccessible to user
+        obj.save()
+        count_user += 1
+    messages.success(
             request,
             ngettext(
                 "%d utilisateur a été marqué comme étant deleted avec succés.",
@@ -94,52 +98,53 @@ def admin_mark_deleted(request, queryset):
         )
 
 class UserInfoAdmin(BaseUserAdmin):
-	inlines = [UserInline]
-	list_display = ('username', 'firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
-	list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
-	search_fields = ('username', 'first_name', 'last_name', 'email')
-	actions = [make_member, admin_mark_deleted] #not usefull if not defined outside and before?
+    inlines = [UserInline]
+    list_display = ('username', 'firstname', 'lastname', 'email', 'verified', 'is_member', 'want_member', 'inscription_date', 'laboratory', 'city_cp', 'is_deleted', 'end_membership',)
+    list_filter = BaseUserAdmin.list_filter + (WantMemberFilter,IsDeletedFilter,)
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    actions = [make_member, admin_mark_deleted]
+    list_select_related = ('info',)   # one query for the whole list instead of one per user
 
-	
-	#Get each field of the UserInfo to display
-	def firstname(self, obj):
-		return obj.info.firstname
-	
-	def lastname(self, obj):
-		return obj.info.lastname
-	
-	def inscription_date(self, obj):
-		return obj.info.inscription_date
+    
+    #Get each field of the UserInfo to display
+    def firstname(self, obj):
+        return obj.info.firstname
+    
+    def lastname(self, obj):
+        return obj.info.lastname
+    
+    def inscription_date(self, obj):
+        return obj.info.inscription_date
 
-	def laboratory(self, obj):
-		return obj.info.laboratory
-	
-	def city_cp(self, obj):
-		return obj.info.city_cp
+    def laboratory(self, obj):
+        return obj.info.laboratory
+    
+    def city_cp(self, obj):
+        return obj.info.city_cp
 
-	def is_deleted(self, obj):
-		return obj.info.is_deleted
-	# to be able to order with this column
-	is_deleted.admin_order_field = 'info__is_deleted'
-	# to get correct display for booleans
-	is_deleted.boolean = True 
+    def is_deleted(self, obj):
+        return obj.info.is_deleted
+    # to be able to order with this column
+    is_deleted.admin_order_field = 'info__is_deleted'
+    # to get correct display for booleans
+    is_deleted.boolean = True 
 
-	def is_member(self, obj):
-		return obj.info.is_member
-	is_member.boolean = True 
+    def is_member(self, obj):
+        return obj.info.is_member
+    is_member.boolean = True 
 
-	def want_member(self, obj):
-		return obj.info.want_member
-	want_member.admin_order_field = 'info__want_member'
-	want_member.boolean = True
+    def want_member(self, obj):
+        return obj.info.want_member
+    want_member.admin_order_field = 'info__want_member'
+    want_member.boolean = True
 
-	def end_membership(self, obj):
-		return obj.info.end_membership
+    def end_membership(self, obj):
+        return obj.info.end_membership
 
-	def verified(self, obj):
-		return obj.info.verified
-	
-	
+    def verified(self, obj):
+        return obj.info.verified
+    
+    
 
 
 

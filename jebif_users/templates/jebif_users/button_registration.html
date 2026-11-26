@@ -1,6 +1,3 @@
-<div>
-    <form action="{% url 'register' %}" method="GET" class="form-group mt-1">
-        {% csrf_token %}
-        <button type="submit" class="btn mx-2" style="background-color: #5c85c4; color: white;">Enregistrement</button>
-    </form>
+<div class="mt-1">
+    <a href="{% url 'register' %}" class="btn mx-2" style="background-color: #5c85c4; color: white;">Créer un compte</a>
 </div>

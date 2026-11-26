@@ -40,8 +40,9 @@
         <form method="post">
             {% csrf_token %}
 
-            {% crispy user_form %}
-            {% crispy info_form %}
+            {{ user_form|crispy }}
+            {{ info_form|crispy }}
+            <button type="submit" class="btn btn-primary">Demander l'adhésion</button>
 
 
         </form>

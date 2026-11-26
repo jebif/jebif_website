@@ -15,46 +15,44 @@
             {{ info_form | crispy }}
             <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
         </form>
-        {% if request.user.info.is_member %}
-            <h4>Adhésion
-                {% if remaining_time <= 30 %}
-                bientôt expirée !
-                {% else %}
-                en cours
-                {% endif %}
-            </h4>
-                Temps restant: {{remaining_time}} jour(s).
-            
+        {% with info=request.user.info %}
+        <h4 class="mt-4">Adhésion</h4>
+        {% if info.want_member %}
+            <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
+        {% elif info.is_active_member %}
             {% if remaining_time <= 30 %}
+                <p><strong>Ton adhésion expire bientôt</strong> : le {{ info.end_membership|date:"d/m/Y" }} (dans {{ remaining_time }} jour(s)).</p>
                 <form method="post" action="{% url 'request_membership' %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Renouveler l'adhésion pour un an</button>
+                    <button type="submit" class="btn btn-primary">Renouveler mon adhésion pour un an</button>
                 </form>
+            {% else %}
+                <p>Adhésion en cours, jusqu'au {{ info.end_membership|date:"d/m/Y" }} ({{ remaining_time }} jour(s) restant(s)).</p>
             {% endif %}
-        {% elif not request.user.info.want_member %}
-            <h4>Tu n'es pas adhérent.e !</h4>
-
+        {% else %}
+            {% if info.membership_expired %}
+                <p><strong>Ton adhésion a expiré le {{ info.end_membership|date:"d/m/Y" }}.</strong></p>
+            {% else %}
+                <p><strong>Tu n'es pas (ou plus) adhérent·e de JeBiF.</strong></p>
+            {% endif %}
             <p>L'adhésion est gratuite et valable pour une durée d'un an, renouvelable sur cette page chaque année.</p>
-
             <form method="post" action="{% url 'request_membership' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Demander à adhérer</button>
+                <button type="submit" class="btn btn-primary">{% if info.membership_expired %}Renouveler mon adhésion pour un an{% else %}Demander l'adhésion{% endif %}</button>
             </form>
-        {% elif request.user.info.want_member %}
-            <h4>Adhésion</h4>
-            <p>Ta demande d'adhésion (ou de renouvellement) est en attente de validation par l'équipe.</p>
-
         {% endif %}
+        {% endwith %}
 
-        <a href="#" class="delete_account btn" style="background: red">
-            Supprimer le compte
-        </a>
-        <div class="confirm_deletion">
-            <form action="{% url 'delete_account' %}" method="post" id="delete_form">
-                {% csrf_token %}
-                <input type="submit" class="confirm btn" style="background:green" value="Supprimer">
-            </form>
-            <a href="#" class="cancel btn" style="background: red">Annuler</a>
-        </div>
+        <hr class="my-4">
+        <details class="delete-account">
+            <summary class="btn btn-outline-danger">Supprimer le compte</summary>
+            <div class="mt-3">
+                <p>Cette action est <strong>définitive</strong> : ton compte et tes informations seront supprimés.</p>
+                <form action="{% url 'delete_account' %}" method="post" id="delete_form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                </form>
+            </div>
+        </details>
     </div>
 {% endblock content %}

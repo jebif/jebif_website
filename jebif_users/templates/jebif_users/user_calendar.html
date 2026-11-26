@@ -17,7 +17,7 @@
 
 <div id="calendar"></div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
     function getCSRFToken() {
         return document.querySelector('[name=csrfmiddlewaretoken]').value;
         }
