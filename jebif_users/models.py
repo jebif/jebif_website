@@ -146,11 +146,11 @@ class UserInfo( models.Model ) :
     email = models.EmailField(unique=True)
     firstname = models.CharField("Prénom", max_length=75)
     lastname = models.CharField("Nom", max_length=75)
-    laboratory = models.CharField("Laboratoire", max_length=75)
     city_name = models.CharField("Ville", max_length=75)
     city_cp = models.CharField("Code Postal", max_length=7)
     country = models.CharField("Pays", max_length=75)
-    position = models.CharField("Poste actuel", max_length=75)
+    laboratory = models.CharField("Laboratoire", max_length=75, blank=True)
+    position = models.CharField("Poste actuel", max_length=75, blank=True)
     know_from = models.TextField("Comment avez vous connu JeBiF ?", blank=True, max_length=200)
     motivation = models.TextField("Motivation pour adhérer", blank=True)
 
