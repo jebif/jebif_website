@@ -3,7 +3,7 @@
 }
 
 .announce-box {
-    position:absolute;
+    position:relative;
     top:0;
     left:0;
     transform:translateX(10%);
@@ -14,4 +14,13 @@
     border: 1px dotted green;
     text-align:center;
     font-size:small;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.space-between {
+    justify-content: space-between;
 }

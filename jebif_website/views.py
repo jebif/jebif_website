@@ -1,4 +1,6 @@
 import os
+import datetime
+import json
 import uuid
 from urllib.parse import urlsplit
 
@@ -6,16 +8,18 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404, JsonResponse
 from django.views.generic import ListView, DetailView
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from PIL import Image, UnidentifiedImageError
 
-from jebif_website.models import Article, Category, Subcategory, Events
+from jebif_website.models import Article, Category, Subcategory, Events, Meetings
 from jebif_website.forms import NewEventForm, ParticipantForm, ContactForm
 from jebif_website.utils import get_staff_emails, send_mail_safe, client_ip, hit_rate_limit
 
@@ -28,7 +32,7 @@ class HomeView(ListView):
 
     # get a queryset with no category
     def get_queryset(self, **kwargs):
-        return Article.objects.filter(category__isnull=True, subcategory__isnull=True).order_by('-date')
+        return Article.objects.filter(is_draft=False, category__isnull=True, subcategory__isnull=True).order_by('-date')
 
 
 class SubcategoryView(ListView):
@@ -41,7 +45,7 @@ class SubcategoryView(ListView):
         # get a queryset for a specific subcategory (which must belong to the category)
         self.category = get_object_or_404(Category, slug=self.kwargs['category_slug'])
         self.subcategory = get_object_or_404(Subcategory, slug=self.kwargs['subcategory_slug'], category=self.category)
-        return Article.objects.filter(category=self.category, subcategory=self.subcategory).order_by('-date')
+        return Article.objects.filter(is_draft=False, category=self.category, subcategory=self.subcategory).order_by('-date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -59,7 +63,7 @@ class CategoryView(ListView):
     def get_queryset(self, **kwargs):
         # get a queryset for a specific category
         self.category = get_object_or_404(Category, slug=self.kwargs['category_slug'])
-        return Article.objects.filter(category=self.category, subcategory__isnull=True).order_by('-date')
+        return Article.objects.filter(is_draft=False, category=self.category, subcategory__isnull=True).order_by('-date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -71,6 +75,12 @@ class ArticleView(DetailView):
     model = Article
     template_name = 'jebif_website/article.html'
     context_object_name = "article"
+
+    def get_queryset(self):
+        # Drafts are only visible to the staff (preview)
+        if self.request.user.is_staff:
+            return Article.objects.all()
+        return Article.objects.filter(is_draft=False)
 
 
 def _get_public_event(request, event_id):
@@ -258,3 +268,65 @@ def contact_view(request):
         form = ContactForm()
 
     return render(request, 'jebif_website/contact_form.html', {'form': form})
+
+
+# ---- Creation of events and meetings from the staff calendar (admin_calendar.html, JSON + fetch) ----
+
+def _staff_json_view(view):
+    """For views called with fetch(): POST only, staff only, JSON errors (no redirect to the login page)."""
+    @require_POST
+    def wrapper(request):
+        if not (request.user.is_authenticated and request.user.is_staff):
+            return JsonResponse({"error": "Accès refusé"}, status=403)
+        try:
+            data = json.loads(request.body)
+            if not isinstance(data, dict):
+                raise ValueError
+        except ValueError:
+            return JsonResponse({"error": "Requête invalide"}, status=400)
+        try:
+            return view(request, data)
+        except KeyError as e:
+            return JsonResponse({"error": f"Champ manquant : {e.args[0]}"}, status=400)
+        except (ValueError, TypeError, ValidationError):
+            return JsonResponse({"error": "Valeur invalide"}, status=400)
+    wrapper.__name__ = view.__name__
+    return wrapper
+
+
+def _calendar_date(value):
+    # The calendar sends "YYYY-MM-DD" (or a full ISO datetime): interpreted in the site time zone
+    date = datetime.datetime.fromisoformat(str(value))
+    if timezone.is_naive(date):
+        date = timezone.make_aware(date)
+    return date
+
+
+@_staff_json_view
+def create_events_view(request, data):
+    event = Events(
+        title=data["title"],
+        date=_calendar_date(data["date"]),
+        localisation=data["localisation"],
+        description=data["description"],
+        max_participants=int(data["max_participants"]),
+        pending=False,
+        organiser=request.user,
+        active=True,
+    )
+    event.full_clean()
+    event.save()
+    return JsonResponse({"status": "ok", "id": event.id})
+
+
+@_staff_json_view
+def create_meetings_view(request, data):
+    meeting = Meetings(
+        title=data["title"],
+        date=_calendar_date(data["date"]),
+        kind=data["kind"],
+        description=data["description"],
+    )
+    meeting.full_clean()
+    meeting.save()
+    return JsonResponse({"status": "ok", "id": meeting.id})

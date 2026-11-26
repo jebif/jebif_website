@@ -12,6 +12,9 @@ from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db.models.functions import Lower
 from django.db.transaction import atomic
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
@@ -23,6 +26,7 @@ from pathlib import Path
 from jebif_website.utils import get_staff_emails, send_mail_safe, hit_rate_limit
 from .models import UserInfo, end_membership
 from .forms import UserRegisterForm, UserModificationForm, UserInfoForm, FillInfoForm
+from jebif_website.models import Events, Meetings
 
 
 User = get_user_model()
@@ -165,6 +169,17 @@ class AdhesionView(View):
 
 class CustomLoginView(LoginView):
     template_name = 'jebif_users/login.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Already logged in: usually sent here by a page this account cannot access
+        if request.user.is_authenticated:
+            messages.error(
+                request,
+                f"⚠️ Tu es déjà connecté·e avec le compte \"{request.user.username}\". "
+                "Si tu tentais d'accéder à une page, ce compte n'a pas les droits nécessaires."
+            )
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CustomPasswordResetView(PasswordResetView):
@@ -387,12 +402,32 @@ def request_membership(request):
         messages.error(request, "⚠️ Vérifie d'abord ton adresse e-mail (lien envoyé par mail) avant de demander l'adhésion.")
         return redirect("profile")
 
+    if not user_info.is_complete():
+        messages.error(request, "⚠️ Ton profil est incomplet, remplis tous les champs avec * pour pouvoir demander l'adhésion.")
+        return redirect("profile")
+
     if not user_info.want_member:
         user_info.want_member = True
         user_info.save()
         ask_membership() #function to send a mail to admin
     messages.success(request, "✅ Ta demande d'adhésion a été transmise.")
     return redirect('profile')
+
+
+@login_required
+@require_POST
+def stop_membership_reminder(request):
+    # "Ne plus me le rappeler" on the membership banner
+    user_info = getattr(request.user, "info", None)
+    if user_info is not None:
+        user_info.stop_membership_reminder = True
+        user_info.save(update_fields=["stop_membership_reminder"])
+        messages.info(request, "Le rappel ne sera plus affiché. Tu peux toujours demander l'adhésion depuis ton profil.")
+    # Only redirect to a page of this site (no open redirect)
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        next_url = reverse("home")
+    return redirect(next_url)
 
 
 @login_required
@@ -433,7 +468,8 @@ def admin_home_view(request):
 
 @can_manage_members()
 def admin_subscription( request ) :
-    infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True, verified=True)
+    # New memberships and renewals (members asking to renew before/after the expiration)
+    infos = UserInfo.objects.filter(is_deleted=False, want_member=True, verified=True)
     return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
 
 
@@ -443,15 +479,19 @@ def admin_subscription_accept( request, info_id ) :
     #Function for the admin page in the website (not the interface) to accept subscription.
     #POST only: a state-changing action must not be reachable with a plain GET link (CSRF).
     info = get_object_or_404(UserInfo, id=info_id)
-    if info.is_member:
-        messages.info(request, "Cette adhésion est déjà acceptée.")
+    if not info.want_member:
+        messages.info(request, "Cette demande a déjà été traitée.")
         return redirect("admin_subscription")
 
+    renewal = info.is_active_member
     with atomic() :
+        if renewal:
+            # Renewal before the expiration: the new year starts at the end of the current one
+            info.init_date(info.end_membership + datetime.timedelta(days=1))
+        else:
+            info.init_date(datetime.date.today())
         info.is_member = True
         info.want_member = False
-        info.inscription_date = datetime.date.today()
-        info.init_date(info.inscription_date)
         info.save()
 
     msg_txt = f"""
@@ -532,3 +572,58 @@ def admin_export_csv( request ) :
             i.inscription_date.isoformat())])
 
     return response
+
+
+# ---- Calendar (events + staff meetings) ----
+
+def _can_see_calendar(user):
+    info = getattr(user, "info", None)
+    return user.is_staff or bool(info and info.is_active_member)
+
+
+@login_required
+@is_admin()
+def admin_calendar(request):
+    # Staff page to add events and meetings (same permission as the creation endpoints)
+    return render(request, "jebif_users/admin_calendar.html")
+
+
+@login_required
+def user_calendar(request):
+    if not _can_see_calendar(request.user):
+        messages.error(request, "❌ Le calendrier est réservé aux adhérent·e·s.")
+        return redirect("home")
+    return render(request, "jebif_users/user_calendar.html")
+
+
+@login_required
+def events_json(request):
+    # Data of both calendars: members (user_calendar) and staff (admin_calendar)
+    if not _can_see_calendar(request.user):
+        return JsonResponse({"error": "Accès refusé"}, status=403)
+
+    events = Events.objects.all()
+    if not request.user.is_staff:
+        # Members only see the validated events
+        events = events.filter(active=True, pending=False)
+
+    data = []
+    for e in events:
+        data.append({
+            "title": f"EV : {e.title}",
+            "start": timezone.localdate(e.date).isoformat(),
+            "description": e.description,
+            "localisation": e.localisation,
+            "max_participants": e.max_participants,
+            "allDay": True,
+            "color": "blue",
+        })
+    for m in Meetings.objects.all():
+        data.append({
+            "title": f"{m.kind} : {m.title}",
+            "start": timezone.localdate(m.date).isoformat(),
+            "description": m.description,
+            "allDay": True,
+            "color": m.color,
+        })
+    return JsonResponse(data, safe=False)

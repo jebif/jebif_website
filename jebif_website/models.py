@@ -113,7 +113,7 @@ class Article(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     # SET_NULL: deleting an author's account must not delete their articles
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    featured = models.BooleanField(default=False)
+    is_draft = models.BooleanField(default=False)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     slug = models.SlugField(unique=True, blank=True)
@@ -212,6 +212,9 @@ class Events(models.Model):
     user : str
         Who proposed this event
 
+    max_participants: int
+        How many people can attend the event
+
     pending : bool
         Has this event been seen (and judged). Pending: not judged yet. Not Pending: Either validated or unvalidated.
 
@@ -288,3 +291,44 @@ class Participant(models.Model):
 
     #def is_from_social(self):  #exemple to show why use variables
     #   return self.know_from in {self.DISCORD, self.LINKEDIN}
+
+
+class Meetings(models.Model):
+    '''
+	Meetings of the JeBiF staff.
+	...
+
+	Attributes
+	----------
+    title : str
+        Name of the Event
+
+    date : date object
+        When is the opening of the event
+
+    description : str
+        What is the content of the event
+    
+    Methods
+	-------
+    '''
+    CA = "CA"
+    GT = "GT"
+    AG = "AG"
+    OTHER = "OT"
+    KIND_CHOICES = {CA:"Conseil d'administration", GT:"Groupe de Travail", AG:"Assemblée Générale", OTHER:"Autre"}
+    # Color shown in the calendar, deduced from the kind of meeting (see save())
+    KIND_COLORS = {CA: "red", GT: "blueviolet", AG: "green", OTHER: "brown"}
+    title = models.CharField(max_length=100)
+    date = models.DateTimeField()
+    kind = models.CharField("Type de réunion", max_length=2, choices=KIND_CHOICES, blank=True)
+    description = models.TextField("Description")
+    # Stores a CSS color name (e.g. "blueviolet"): max_length 2 and choices keyed by kind were too short / invalid
+    color = models.CharField("Couleur", max_length=20, default="brown", blank=True, editable=False)
+
+    def __str__( self ) :
+        return f"{self.title} - {self.date}"
+
+    def save(self, *args, **kwargs):
+        self.color = self.KIND_COLORS.get(self.kind, "brown")
+        super().save(*args, **kwargs)

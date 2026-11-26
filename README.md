@@ -54,6 +54,8 @@ SECRET_KEY=test COOKIE_SECURE=False python manage.py test
 ```
 They also run on GitHub Actions for each push (`.github/workflows/tests.yml`).
 
+`python -m pip install django-qr-code` for qrcode, used to generate qrcode.
+
 ## Structure
 This website is made with 7 categories in mind (L'association,  Evènements, Bioinformatique, Vulgarisation, Liens utiles, Nous rejoindre, and Contact). Each category has differents sub-categories. In addition, there is also a home page (Accueil).
 

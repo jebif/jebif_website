@@ -2,9 +2,12 @@
 {% load html_tags %}
 
 {% block content %}
-
-                <div>
+            {% if article.is_draft %}
+                <div class="alert alert-warning">Brouillon : cet article n'est visible que par l'équipe.</div>
+            {% endif %}
+                <div class="article-content">
                     <h3>{{article.title}}</h3>
+                    <p>Publié le : {{ article.date }}</p>
                     {{ article.content|sanitize_html }}
                     {% if article.pdf %}
                         <a href="{{ article.pdf.url }}" target="_blank" rel="noopener">
@@ -12,5 +15,4 @@
                         </a>
                     {% endif %}
                 </div>
-
 {% endblock %}

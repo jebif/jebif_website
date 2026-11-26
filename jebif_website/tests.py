@@ -193,3 +193,46 @@ class UploadImageTests(TestCase):
             self.assertEqual(self.client.post(self.url, {"file": self.png()}, HTTP_ORIGIN="https://evil.example").status_code, 403)
             fake = SimpleUploadedFile("x.png", b"<svg onload=alert(1)>", content_type="image/png")
             self.assertEqual(self.client.post(self.url, {"file": fake}, HTTP_ORIGIN="http://testserver").status_code, 400)
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+class MergedMainFeaturesTests(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user("staff", "s@example.org", PASSWORD, is_staff=True)
+        self.category = Category.objects.create(name="Asso")
+
+    def test_drafts_hidden_but_pagination_intact(self):
+        for i in range(5):
+            Article.objects.create(title=f"Public {i}", content="x", author=self.staff, category=self.category)
+        draft = Article.objects.create(title="Brouillon", content="x", author=self.staff,
+                                       category=self.category, is_draft=True)
+        response = self.client.get(reverse("articles_per_category", args=[self.category.slug]))
+        self.assertNotContains(response, "Brouillon")
+        self.assertNotContains(response, "Page 1 sur 2")    # the draft does not create an empty page
+        self.assertEqual(self.client.get(reverse("article", args=[draft.slug])).status_code, 404)
+        self.assertNotContains(self.client.get(reverse("articles_feed")), "Brouillon")
+        self.client.force_login(self.staff)
+        self.assertContains(self.client.get(reverse("article", args=[draft.slug])), "Brouillon")
+
+    def test_calendar_creation_endpoints(self):
+        from jebif_website.models import Meetings
+        url = reverse("create_meetings")
+        payload = '{"title": "CA", "date": "2030-01-03", "kind": "CA", "description": "d"}'
+        user = User.objects.create_user("u", "u@example.org", PASSWORD)
+        self.client.force_login(user)
+        self.assertEqual(self.client.post(url, payload, content_type="application/json").status_code, 403)
+        self.client.force_login(self.staff)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        response = self.client.post(url, payload, content_type="application/json")
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(Meetings.objects.get().color, "red")
+        self.assertEqual(self.client.post(url, "not json", content_type="application/json").status_code, 400)
+        response = self.client.post(reverse("create_events"), '{"title": "Pub", "date": "2030-01-04", '
+                                    '"localisation": "Paris", "description": "d", "max_participants": "-1"}',
+                                    content_type="application/json")
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertTrue(Events.objects.get(title="Pub").is_public)
+
+    def test_event_page_has_qr_code(self):
+        event = make_event()
+        self.assertContains(self.client.get(reverse("event", args=[event.id])), "QR code")

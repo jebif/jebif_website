@@ -11,12 +11,19 @@
         {% endif %}
         L'adhésion est gratuite et dure un an.
     </div>
-    <form method="post" action="{% url 'request_membership' %}" class="m-0">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary btn-sm">
-            {% if info.membership_expired %}Renouveler mon adhésion{% else %}Demander l'adhésion{% endif %}
-        </button>
-    </form>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <form method="post" action="{% url 'request_membership' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">
+                {% if info.membership_expired %}Renouveler mon adhésion{% else %}Demander l'adhésion{% endif %}
+            </button>
+        </form>
+        <form method="post" action="{% url 'stop_membership_reminder' %}" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-link btn-sm">Ne plus me le rappeler</button>
+        </form>
+    </div>
 </div>
 {% endif %}
 {% endwith %}

@@ -163,6 +163,7 @@ class UserInfo( models.Model ) :
     
     # Check if the user has verified their account
     verified = models.BooleanField(default=False)
+    stop_membership_reminder = models.BooleanField(default=False)
 
     # Last time a "membership about to expire" reminder was sent (see expire_memberships command)
     last_reminder = models.DateField(null=True, blank=True)
@@ -172,6 +173,14 @@ class UserInfo( models.Model ) :
 
     class Meta :
         verbose_name = "UserInfo"
+
+    def is_complete(self) -> bool:
+        return  self.firstname != "" and \
+                self.lastname != "" and \
+                self.laboratory != "" and \
+                self.city_name != "" and \
+                self.city_cp != "" and \
+                self.position != ""
 
     def get_end_membership(self,base=None) :
         '''
@@ -196,6 +205,8 @@ class UserInfo( models.Model ) :
         self.begin_membership = begin_membership
         self.end_membership = self.get_end_membership(begin_membership)
         self.last_reminder = None
+        # A new membership period: show the membership banner again when it expires
+        self.stop_membership_reminder = False
     
     def has_expired( self ) :
         '''
@@ -221,9 +232,11 @@ class UserInfo( models.Model ) :
     def should_ask_membership(self):
         '''
         True if the user should be invited to request a membership: verified account,
-        not a member (or membership expired), and no request already pending.
+        not a member (or membership expired), no request already pending, and the
+        user did not ask to stop the reminder ("Ne plus me le rappeler").
         '''
-        return self.verified and not self.is_deleted and not self.want_member and not self.is_active_member
+        return (self.verified and not self.is_deleted and not self.want_member
+                and not self.stop_membership_reminder and not self.is_active_member)
 
     @property
     def membership_expired(self):

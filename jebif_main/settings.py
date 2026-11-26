@@ -86,6 +86,18 @@ SECURE_CSP_REPORT_ONLY = {
     "frame-ancestors": [CSP.NONE],
 }
 
+# Cookies: secure by default (production); set COOKIE_SECURE=False for local HTTP dev
+COOKIE_SECURE = env.bool("COOKIE_SECURE", default=True)
+SESSION_COOKIE_SECURE = COOKIE_SECURE
+CSRF_COOKIE_SECURE = COOKIE_SECURE
+
+# Security hardening (enable HSTS / SSL redirect in production via env)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)  # usually behind a proxy
+
 SITE_ID = 1
 # Application definition
 
@@ -103,6 +115,7 @@ INSTALLED_APPS = [
     'tinymce',          #requires: pip install django-tinymce
     'crispy_forms',     #see requirement in README
     'crispy_bootstrap5',
+    'qr_code',      #necessary to generate QR code, requires: pip install django-qr-code
 ]
 
 MIDDLEWARE = [

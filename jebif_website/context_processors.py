@@ -29,5 +29,5 @@ def platforms_sidebar_processor(request):
 
 def recent_articles_processor(request):
     return {
-        'recent_articles': Article.objects.order_by('-date')[:5]
+        'recent_articles': Article.objects.filter(is_draft=False).order_by('-date')[:5]
     }

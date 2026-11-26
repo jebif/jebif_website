@@ -1,5 +1,7 @@
 {% extends 'jebif_website/base.html' %}
 
+{% load qr_code %}
+
 {% block content %}
     <div class="container">
         {% if not event.is_public %}
@@ -8,6 +10,9 @@
         <h2>{{ event.title }}</h2>
         <h3>Le {{ event.date }} - {{ event.localisation }}</h3>
         <p>{{ event.description|linebreaksbr }}</p>
+
+        <img src="{% qr_url_from_text request.build_absolute_uri %}" alt="QR code">
+        <a href="{% qr_url_from_text request.build_absolute_uri %}" target="_blank" rel="noopener">Lien du QR code</a>
 
         {% if event.is_past %}
             <p>Cet évènement est terminé.</p>

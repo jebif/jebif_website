@@ -15,7 +15,7 @@ class LatestArticlesFeed(Feed):
         return reverse("home")
 
     def items(self):
-        return Article.objects.order_by("-date")[:20]
+        return Article.objects.filter(is_draft=False).order_by("-date")[:20]
 
     def item_title(self, item):
         return item.title

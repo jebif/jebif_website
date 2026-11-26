@@ -359,3 +359,74 @@ class MembershipBannerTests(TestCase):
         self.client.force_login(make_user())
         response = self.client.get(reverse("profile"))
         self.assertEqual(response.content.decode().count(reverse("request_membership")), 1)
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+class MergedMainFeaturesTests(TestCase):
+    """Features coming from main (calendar, reminder opt-out, profile completeness, renewals)."""
+
+    def test_stop_reminder_is_post_and_no_open_redirect(self):
+        user = make_user()
+        self.client.force_login(user)
+        self.assertEqual(self.client.get(reverse("stop_membership_reminder")).status_code, 405)
+        response = self.client.post(reverse("stop_membership_reminder"), {"next": "https://evil.example/"})
+        self.assertRedirects(response, reverse("home"))
+        user.info.refresh_from_db()
+        self.assertTrue(user.info.stop_membership_reminder)
+        self.assertNotContains(self.client.get(reverse("home")), reverse("request_membership"))
+
+    def test_new_membership_resets_opt_out(self):
+        user = make_user(stop_membership_reminder=True)
+        user.info.re_new_membership()
+        user.info.refresh_from_db()
+        self.assertFalse(user.info.stop_membership_reminder)
+
+    def test_incomplete_profile_cannot_request(self):
+        user = make_user(laboratory="")
+        self.client.force_login(user)
+        self.client.post(reverse("request_membership"))
+        user.info.refresh_from_db()
+        self.assertFalse(user.info.want_member)
+
+    def test_renewal_listed_and_extends_current_year(self):
+        admin = User.objects.create_superuser("root", "root@example.org", PASSWORD)
+        user = make_user(is_member=True, want_member=True)
+        end = user.info.end_membership
+        self.client.force_login(admin)
+        self.assertContains(self.client.get(reverse("admin_subscription")), "Renouvellement")
+        self.client.post(reverse("admin_subscription_accept", args=[user.info.id]))
+        user.info.refresh_from_db()
+        self.assertEqual(user.info.begin_membership, end + datetime.timedelta(days=1))
+        self.assertFalse(user.info.want_member)
+
+    def test_logged_in_user_redirected_from_login(self):
+        self.client.force_login(make_user())
+        self.assertRedirects(self.client.get(reverse("login")), reverse("home"))
+
+    def test_calendar_access(self):
+        from jebif_website.models import Events, Meetings
+        organiser = make_user("orga", "orga@example.org")
+        Events.objects.create(title="Validé", date=datetime.datetime(2030, 1, 1, tzinfo=datetime.timezone.utc),
+                              localisation="Paris", description="d", organiser=organiser, pending=False, active=True)
+        Events.objects.create(title="En attente", date=datetime.datetime(2030, 1, 2, tzinfo=datetime.timezone.utc),
+                              localisation="Paris", description="d", organiser=organiser, pending=True, active=False)
+        Meetings.objects.create(title="CA", date=datetime.datetime(2030, 1, 3, tzinfo=datetime.timezone.utc),
+                                kind="GT", description="d")
+
+        # Not a member: no access
+        self.client.force_login(make_user("nm", "nm@example.org"))
+        self.assertEqual(self.client.get(reverse("events_json")).status_code, 403)
+        self.assertRedirects(self.client.get(reverse("user_calendar")), reverse("home"))
+
+        # Member: calendar + validated events only (the JSON endpoint used to be staff-only)
+        self.client.force_login(make_user("mb", "mb@example.org", is_member=True))
+        self.assertEqual(self.client.get(reverse("user_calendar")).status_code, 200)
+        titles = [e["title"] for e in self.client.get(reverse("events_json")).json()]
+        self.assertIn("EV : Validé", titles)
+        self.assertNotIn("EV : En attente", titles)
+        self.assertIn("GT : CA", titles)
+
+        # Superuser without UserInfo: used to crash (request.user.info)
+        self.client.force_login(User.objects.create_superuser("root", "root@example.org", PASSWORD))
+        self.assertEqual(self.client.get(reverse("admin_calendar")).status_code, 200)
+        self.assertEqual(len(self.client.get(reverse("events_json")).json()), 3)

@@ -8,7 +8,7 @@
 			<h1>Demandes d'adhésion</h1>
 			<table border="1">
 				<tr>
-					<th>Prénom</th><th>Nom</th><th>E-mail</th><th>Date d'inscription</th>
+					<th>Prénom</th><th>Nom</th><th>E-mail</th><th>Date d'inscription</th><th>Type</th>
 				</tr>
 			{% for info in infos %}
 				<tr>
@@ -16,6 +16,12 @@
 					<td>{{ info.lastname }}</td>
 					<td>{{ info.email }}</td>
 					<td>{{ info.inscription_date }}</td>
+					<td>{% if info.is_member %}
+						Renouvellement
+						{% else %}
+						Adhésion
+						{% endif %}
+					</td>
 					<td>
 						<form method="post" action="{% url 'admin_subscription_accept' info.id %}" style="display:inline; margin-bottom:0;">
 							{% csrf_token %}
@@ -24,7 +30,7 @@
 						/
 						<form method="post" action="{% url 'admin_subscription_reject' info.id %}" style="display:inline; margin-bottom:0;">
 							{% csrf_token %}
-							<button type="submit" class="btn btn-sm btn-outline-danger">supprimer</button>
+							<button type="submit" class="btn btn-sm btn-outline-danger">rejeter</button>
 						</form>
 					</td>
 				</tr>
