@@ -282,3 +282,80 @@ class ExpireMembershipsCommandTests(TestCase):
 
         self.run_command()   # next day: nothing new to send
         self.assertEqual(len(mail.outbox), 2)
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+class MembershipRequestTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("bob", "bob@example.org", PASSWORD)
+        UserInfo.objects.create(user=self.user, email="bob@example.org", verified=False)
+        User.objects.create_user("staff", "staff@example.org", PASSWORD, is_staff=True)
+
+    def verify_url(self, adhere=False):
+        return reverse("verify", kwargs={"token": make_verify_token(self.user, adhere)})
+
+    def test_fill_info_shows_checkbox(self):
+        response = self.client.get(self.verify_url())
+        self.assertContains(response, 'name="ask_membership"')
+
+    def test_fill_info_with_membership_request(self):
+        self.client.post(self.verify_url(), dict(INFO_POST, ask_membership="on"))
+        self.user.info.refresh_from_db()
+        self.assertTrue(self.user.info.want_member)
+        self.assertEqual(mail.outbox[-1].to, ["staff@example.org"])   # staff notified
+
+    def test_fill_info_without_membership_request(self):
+        self.client.post(self.verify_url(), INFO_POST)
+        self.user.info.refresh_from_db()
+        self.assertFalse(self.user.info.want_member)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_adhere_link_prechecks_box_but_can_be_unchecked(self):
+        response = self.client.get(self.verify_url(adhere=True))
+        self.assertContains(response, 'checked')
+        self.client.post(self.verify_url(adhere=True), INFO_POST)   # box unchecked
+        self.user.info.refresh_from_db()
+        self.assertFalse(self.user.info.want_member)
+
+    def test_no_checkbox_for_active_member(self):
+        info = self.user.info
+        info.is_member = True
+        info.save()
+        self.assertNotContains(self.client.get(self.verify_url()), 'name="ask_membership"')
+
+
+@override_settings(CACHES=LOCMEM_CACHE)
+class MembershipBannerTests(TestCase):
+    def get_home(self, user):
+        self.client.force_login(user)
+        return self.client.get(reverse("home"))
+
+    def test_shown_to_non_member(self):
+        response = self.get_home(make_user())
+        self.assertContains(response, "Tu n'es pas (ou plus) adhérent·e de JeBiF")
+        self.assertContains(response, reverse("request_membership"))
+
+    def test_expired_member(self):
+        user = make_user(is_member=True, end_membership=datetime.date(2020, 5, 31))
+        response = self.get_home(user)
+        self.assertContains(response, "Ton adhésion à JeBiF a expiré le 31/05/2020")
+        self.assertContains(response, "Renouveler mon adhésion")
+
+    def test_hidden_for_member_pending_unverified(self):
+        cases = [
+            make_user("m", "m@example.org", is_member=True),
+            make_user("p", "p@example.org", want_member=True),
+            make_user("u", "u@example.org", verified=False),
+        ]
+        for user in cases:
+            response = self.get_home(user)
+            self.assertNotContains(response, reverse("request_membership"), msg_prefix=user.username)
+
+    def test_hidden_for_user_without_info(self):
+        admin = User.objects.create_superuser("root", "root@example.org", PASSWORD)
+        self.assertEqual(self.get_home(admin).status_code, 200)
+
+    def test_not_duplicated_on_profile(self):
+        self.client.force_login(make_user())
+        response = self.client.get(reverse("profile"))
+        self.assertEqual(response.content.decode().count(reverse("request_membership")), 1)

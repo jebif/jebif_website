@@ -16,16 +16,20 @@
             <button type="submit" class="btn btn-primary mt-3">Mettre à jour</button>
         </form>
         {% if show_button_membership %}
-            <p><h4>Ton adhésion expire bientôt (moins de 30 jours) ou tu n'es pas adhérent.</h4></p>
-            {% if remaining_time %}
-                Temps restant: {{remaining_time}} jour(s).
+            {% with info=request.user.info %}
+            <p><h4>Adhésion</h4></p>
+            {% if info.is_active_member %}
+                <p>Ton adhésion expire bientôt : le {{ info.end_membership|date:"d/m/Y" }} (dans {{ remaining_time }} jour(s)).</p>
+            {% elif info.membership_expired %}
+                <p>Ton adhésion a expiré le {{ info.end_membership|date:"d/m/Y" }}.</p>
             {% else %}
-                Tu n'es pas (ou plus) adhérent.
+                <p>Tu n'es pas (ou plus) adhérent·e de JeBiF. L'adhésion est gratuite et dure un an.</p>
             {% endif %}
             <form method="post" action="{% url 'request_membership' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary">Demander à Adhérer / Renouveler l'adhésion pour un an</button>
+                <button type="submit" class="btn btn-primary">{% if info.is_active_member or info.membership_expired %}Renouveler mon adhésion pour un an{% else %}Demander l'adhésion{% endif %}</button>
             </form>
+            {% endwith %}
 
         {% elif request.user.info.want_member %}
             <p><h4>Adhésion</h4></p>

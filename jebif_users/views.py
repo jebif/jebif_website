@@ -22,7 +22,7 @@ from pathlib import Path
 
 from jebif_website.utils import get_staff_emails, send_mail_safe, hit_rate_limit
 from .models import UserInfo, end_membership
-from .forms import UserRegisterForm, UserModificationForm, UserInfoForm
+from .forms import UserRegisterForm, UserModificationForm, UserInfoForm, FillInfoForm
 
 
 User = get_user_model()
@@ -278,8 +278,16 @@ class VerifyView(View):
             existing_account = _import_old_account(user, user_info)
             user_info.save()
 
-        info_form = UserInfoForm(instance=user_info)
+        info_form = self._fill_info_form(user_info, payload)
         return render(request, "jebif_users/fill_info.html", {"existing_account":existing_account, "info_form":info_form})
+
+    @staticmethod
+    def _fill_info_form(user_info, payload, data=None):
+        """Info form, with the "request membership" checkbox (unless already an active member).
+        The box is pre-checked if the membership was asked at registration (adhesion page)."""
+        can_ask = not (user_info and user_info.is_active_member)
+        initial = {"ask_membership": bool(payload["adhere"] or (user_info and user_info.want_member))}
+        return FillInfoForm(data, instance=user_info, initial=initial, can_ask_membership=can_ask)
 
     def post(self, request, token):
         checked = self._check(token)
@@ -293,19 +301,16 @@ class VerifyView(View):
             messages.info(request, "Ce compte est déjà vérifié, connecte-toi.")
             return redirect("login")
 
-        if user_info:
-            info_form = UserInfoForm(request.POST, instance=user_info)
-            existing_account = True
-        else:
-            info_form = UserInfoForm(request.POST)
-            existing_account = False
+        existing_account = user_info is not None
+        info_form = self._fill_info_form(user_info, payload, request.POST)
 
         if info_form.is_valid():
             with atomic():
                 user_info = info_form.save(commit=False)
                 user_info.user = user
                 user_info.email = user.email
-                user_info.want_member = payload["adhere"] or user_info.want_member
+                if "ask_membership" in info_form.fields:
+                    user_info.want_member = info_form.cleaned_data["ask_membership"]
                 user_info.verified = True
                 user_info.save()
 

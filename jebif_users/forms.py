@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.password_validation import validate_password
-from django.forms import ModelForm, Form, EmailField, ValidationError
+from django.forms import ModelForm, Form, EmailField, BooleanField, ValidationError
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from .models import UserInfo
@@ -108,6 +108,22 @@ class UserInfoForm( ModelForm ) :
                         "city_name", "country",
                         "position", "motivation",
                         "know_from")
+
+
+class FillInfoForm( UserInfoForm ) :
+    # Form filled after the e-mail verification: same as UserInfoForm, plus the
+    # option to request the membership at the same time.
+    ask_membership = BooleanField(
+        label="Je souhaite adhérer à l'association JeBiF",
+        required=False,
+        help_text="L'adhésion est gratuite et dure un an. Ta demande sera examinée par le conseil d'administration.",
+    )
+
+    def __init__(self, *args, can_ask_membership=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not can_ask_membership:
+            # Already an active member (account imported from the old site)
+            del self.fields["ask_membership"]
 
 
 class UserInfoEmailForm( Form ) :

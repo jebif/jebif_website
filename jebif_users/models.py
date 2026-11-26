@@ -217,6 +217,22 @@ class UserInfo( models.Model ) :
         '''
         return self.is_member and not self.is_deleted and not self.has_expired()
 
+    @property
+    def should_ask_membership(self):
+        '''
+        True if the user should be invited to request a membership: verified account,
+        not a member (or membership expired), and no request already pending.
+        '''
+        return self.verified and not self.is_deleted and not self.want_member and not self.is_active_member
+
+    @property
+    def membership_expired(self):
+        '''
+        True if the user had a membership that has expired. The expire_memberships command sends
+        reminders (last_reminder) to members only, so it tells former members from never-members.
+        '''
+        return self.has_expired() and (self.is_member or self.last_reminder is not None)
+
     def re_new_membership(self):
         '''
         Grant membership to the User, modifying the begin_membership field (and other related fields).
