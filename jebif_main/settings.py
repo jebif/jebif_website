@@ -14,22 +14,18 @@ from pathlib import Path
 import os
 import environ
 
-# Initialize environment variables
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialize environment variables, read from jebif_main/.env
+# (explicit path: works whatever the current working directory is)
 env = environ.Env()
-    #DEBUG=(bool, False)  # Par défaut, DEBUG est False      # NEED REWORK
-
-
-# Read .env file
-environ.Env.read_env()
-# if used from somewhere else: environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main/.env"))
+environ.Env.read_env(os.path.join(BASE_DIR, "jebif_main", ".env"))
 
 DEBUG = env.bool("DEBUG", default=False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Absolute path to the directory that holds media.
 
@@ -39,12 +35,27 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # trailing slash if there is a path component (optional in other cases).
 MEDIA_URL = '/media/'
 
+# Serve /media/ with Django. Better done by the web server (nginx) in production:
+# set SERVE_MEDIA=False once nginx serves the media folder.
+SERVE_MEDIA = env.bool("SERVE_MEDIA", default=True)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-ALLOWED_HOSTS = ["localhost","127.0.0.1","jebif.rumengol.net", "jebif.fr", "beta.jebif.fr"]
-CSRF_TRUSTED_ORIGINS=["https://localhost","https://jebif.rumengol.net", "https://jebif.fr", "https://beta.jebif.fr"]
+# Comma-separated lists in .env, e.g. ALLOWED_HOSTS=jebif.fr,beta.jebif.fr
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "jebif.fr", "beta.jebif.fr"])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://jebif.fr", "https://beta.jebif.fr"])
+
+# Behind a reverse proxy (nginx) terminating HTTPS: trust its X-Forwarded-Proto header,
+# otherwise SECURE_SSL_REDIRECT=True causes a redirect loop.
+# Only enable it if the proxy always sets/overwrites this header.
+if env.bool("BEHIND_HTTPS_PROXY", default=False):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Use the client IP given by the proxy (X-Forwarded-For) for rate limiting.
+# Only enable it if the proxy always sets/overwrites this header.
+TRUST_X_FORWARDED_FOR = env.bool("TRUST_X_FORWARDED_FOR", default=False)
 
 # Cookies: secure by default (production); set COOKIE_SECURE=False for local HTTP dev
 COOKIE_SECURE = env.bool("COOKIE_SECURE", default=True)
@@ -57,6 +68,23 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=False)  # usually behind a proxy
+
+# Content Security Policy (built into Django >= 6.0).
+# Report-only for now: violations are only shown in the browser console.
+# Once the site has been checked without violations, rename to SECURE_CSP to enforce it.
+from django.utils.csp import CSP
+SECURE_CSP_REPORT_ONLY = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF, CSP.NONCE, "https://cdn.jsdelivr.net", "https://kit.fontawesome.com"],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE, "https://cdn.jsdelivr.net", "https://ka-f.fontawesome.com"],
+    "font-src": [CSP.SELF, "https://ka-f.fontawesome.com"],
+    "connect-src": [CSP.SELF, "https://ka-f.fontawesome.com"],
+    "img-src": [CSP.SELF, "data:", "https:"],
+    "frame-src": ["https://www.youtube-nocookie.com", "https://www.youtube.com", "https://player.vimeo.com"],
+    "object-src": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+}
 
 SITE_ID = 1
 # Application definition
@@ -85,7 +113,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "django.contrib.sites.middleware.CurrentSiteMiddleware"
+    "django.contrib.sites.middleware.CurrentSiteMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
 ]
 
 ROOT_URLCONF = 'jebif_main.urls'
@@ -100,6 +129,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csp',
+                'jebif_website.context_processors.site_settings_processor',
                 'jebif_website.context_processors.categories_processor',
                 'jebif_website.context_processors.images_sidebar_processor',
                 'jebif_website.context_processors.events_sidebar_processor',
@@ -118,7 +149,11 @@ WSGI_APPLICATION = 'jebif_main.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': env("SQLITE_PATH", default=os.path.join(BASE_DIR, 'db.sqlite3')),
+        'OPTIONS': {
+            # Wait instead of failing with "database is locked" when several workers write
+            'timeout': 20,
+        },
     }
 }
 
@@ -147,7 +182,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'fr-fr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Paris'
 
 USE_I18N = True
 
@@ -163,12 +198,21 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'jebif_website/static'),
 ]
 
-STATIC_ROOT = env("STATIC_DIR")  # Collecte des fichiers statiques en production
+STATIC_ROOT = env("STATIC_DIR", default=os.path.join(BASE_DIR, "staticfiles"))  # Collecte des fichiers statiques en production
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Cache shared by all gunicorn workers (used for rate limiting).
+# The default in-memory cache is per process, so limits would not be shared.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": env("CACHE_DIR", default=os.path.join(BASE_DIR, "cache")),
+    }
+}
 
 
 # To changes parameters for Tinymce
@@ -184,8 +228,14 @@ TINYMCE_DEFAULT_CONFIG = {
                 link image code codesample media | bullist numlist | \
                 emoticons | table tablecellprops tableprops | insertdatetime help",
     "file_picker_types": "image",
-    "images_upload_url": "/upload_image/",  # a Django view to upload images
+    "images_upload_url": "/upload_image/",  #staff only
+    "relative_urls": False,
 }
+
+# Hosts allowed in <iframe src> inside articles (TinyMCE "media" plugin)
+ARTICLE_IFRAME_HOSTS = env.list("ARTICLE_IFRAME_HOSTS", default=[
+    "www.youtube.com", "www.youtube-nocookie.com",
+])
 
 # To change for Crispy, to make nicer forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
@@ -198,12 +248,18 @@ LOGIN_REDIRECT_URL = '/'
 #### Settings from old repos, for different aspects of the website 
 HTTP_DOMAIN = env("HTTP_DOMAIN", default="https://jebif.fr")  # domain used in e-mail links
 
-LOGIN_URL = "/users/login/"          # real login URL (was "/login/", which does not exist)
+LOGIN_URL = "login"          # URL name of the login view
 EMAIL_SUBJECT_PREFIX = "[JeBiF] "
 
 # Single source of truth for the sender address (was a mix of beta/hardcoded addresses)
 EMAIL_FROM = env("EMAIL_FROM", default="no-reply@jebif.fr")
 SERVER_EMAIL = EMAIL_FROM
+
+# Where messages from the contact form are sent (must be a mailbox someone reads)
+CONTACT_EMAIL = env("CONTACT_EMAIL", default="contact@jebif.fr")
+
+# Show the "development website" banner (set SHOW_DEV_BANNER=True on beta.jebif.fr)
+SHOW_DEV_BANNER = env.bool("SHOW_DEV_BANNER", default=False)
 
 
 #### Configuration for emails
@@ -221,7 +277,9 @@ else:
 
 DEFAULT_FROM_EMAIL = EMAIL_FROM
 
-#ADMINS = os.environ.get("ADMINS")
+# Receive an e-mail for every server error (500) in production.
+# Comma-separated list in .env, e.g. ADMINS=admin1@jebif.fr,admin2@jebif.fr
+ADMINS = env.list("ADMINS", default=[])
 
 # Logging configuration
 LOGGING = {
@@ -237,12 +295,24 @@ LOGGING = {
             'style': '{',
         },
     },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
     'handlers': {
         'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
+            'level': env("LOG_LEVEL", default="INFO"),
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': env("LOG_FILE", default=os.path.join(BASE_DIR, "debug.log")),
+            'maxBytes': 5 * 1024 * 1024,    # 5 Mo per file
+            'backupCount': 5,
             'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_false'],
         },
         'console': {
             'level': 'WARNING',
@@ -252,9 +322,14 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'handlers': ['file', 'console', 'mail_admins'],
+            'level': env("LOG_LEVEL", default="INFO"),
             'propagate': True,
+        },
+        'jebif': {
+            'handlers': ['file', 'console'],
+            'level': env("LOG_LEVEL", default="INFO"),
+            'propagate': False,
         },
     },
 }

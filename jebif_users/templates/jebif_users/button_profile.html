@@ -1,6 +1,3 @@
-<div>
-    <form action="{% url 'profile' %}" method="GET" class="form-group my-1">
-        {% csrf_token %}
-        <button type="submit" class="btn" style="background-color: #5c85c4; color: white;">Profil</button>
-    </form>
+<div class="my-1">
+    <a href="{% url 'profile' %}" class="btn" style="background-color: #5c85c4; color: white;">Profil</a>
 </div>

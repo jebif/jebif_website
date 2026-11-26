@@ -1,9 +1,10 @@
 from django.db import models
-from django.utils.text import slugify
 from tinymce.models import HTMLField    #looks like an error but in fact works
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.utils import timezone
+
+from jebif_website.utils import unique_slug
 
 class Category(models.Model):
     '''
@@ -26,13 +27,7 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.name).replace('-', '_')
-            slug = base
-            i = 1
-            while self.__class__.objects.filter(slug=slug).exists():
-                slug = f"{base}_{i}"
-                i += 1
-            self.slug = slug
+            self.slug = unique_slug(self, self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -66,13 +61,7 @@ class Subcategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.name).replace('-', '_')
-            slug = base
-            i = 1
-            while self.__class__.objects.filter(slug=slug).exists():
-                slug = f"{base}_{i}"
-                i += 1
-            self.slug = slug
+            self.slug = unique_slug(self, self.name)
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -100,14 +89,11 @@ class Article(models.Model):
         Date of the update of the article
 
     author : str
-        Author of the article
+        Author of the article (kept empty if the author's account is deleted)
 
     featured : bool
         In case a new part of the site is added, to showcase special articles;
         they could be selected with this attribute.
-
-    likes : str
-        Not used, but could be used to display the number of people liking an article.
 
     subcategory : str
         The Subcategory the article is belonging to (can be null).
@@ -125,9 +111,9 @@ class Article(models.Model):
     content = HTMLField()
     date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    # SET_NULL: deleting an author's account must not delete their articles
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     featured = models.BooleanField(default=False)
-    likes = models.ManyToManyField(User, related_name='likes', blank=True)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, null=True, blank=True, on_delete=models.SET_NULL)
     slug = models.SlugField(unique=True, blank=True)
@@ -143,13 +129,7 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.title).replace('-', '_')
-            slug = base
-            i = 1
-            while self.__class__.objects.filter(slug=slug).exists():
-                slug = f"{base}_{i}"
-                i += 1
-            self.slug = slug
+            self.slug = unique_slug(self, self.title)
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -234,6 +214,9 @@ class Events(models.Model):
 
     pending : bool
         Has this event been seen (and judged). Pending: not judged yet. Not Pending: Either validated or unvalidated.
+
+    active : bool
+        Has this event been validated. Only events that are not pending and active are public.
     Methods
 	-------
     '''
@@ -241,13 +224,27 @@ class Events(models.Model):
     date = models.DateTimeField()
     localisation = models.CharField(max_length=100)
     description = models.TextField("Description")
-    organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_events')
+    # SET_NULL: deleting the organiser's account must not delete the event (and its participants)
+    organiser = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='pending_events')
     max_participants = models.IntegerField("Nombre maximum de participants (-1 pour participants illimités)", default=-1)
     pending = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 
     def __str__( self ) :
         return f"{self.title} ({self.localisation}) - {self.date}"
+
+    @property
+    def is_public(self):
+        # Validated by the staff (pending events and rejected events are not public)
+        return self.active and not self.pending
+
+    @property
+    def is_past(self):
+        return self.date < timezone.now()
+
+    @property
+    def is_full(self):
+        return self.max_participants > 0 and self.participant_set.count() >= self.max_participants
     
 class Participant(models.Model):
     """
@@ -279,9 +276,11 @@ class Participant(models.Model):
     email = models.EmailField("Addresse mail")
     know_from = models.CharField("Comment avez-vous pris connaissance de cet événement?", max_length=3, choices=KNOW_FROM_CHOICES, blank=True)
     k_f_text = models.CharField("Si Autre:", blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    # SET_NULL: the registration is kept if the account is deleted
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     event = models.ForeignKey(Events, on_delete=models.CASCADE)
-    image_use = models.BooleanField("Autorisation d'utiliser l'image", default=True)
+    # GDPR: consent must be given explicitly (opt-in), so the box is unchecked by default
+    image_use = models.BooleanField("J'autorise JeBiF à utiliser des photos où j'apparais", default=False)
     
     
     def __str__(self):

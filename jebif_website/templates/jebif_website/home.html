@@ -1,4 +1,5 @@
 {% extends 'jebif_website/base.html' %}
+{% load html_tags %}
 
 {% block content %}
 
@@ -6,41 +7,12 @@
 
                 {% if article %}
                         <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
-                        <div>{{article.content | safe | truncatewords_html:100 }}</div>
+                        <div>{{ article.content|sanitize_html|truncatewords_html:100 }}</div>
                         <hr class="my-4"> 
                 {% endif %}
 
             {% endfor %}
 
-            <!-- Pagination -->
-            <nav>
-                <ul class="pagination">
-                    <div class="mx-auto d-flex flex-row mt-5">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1">&laquo; First</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page= {{ page_obj.previous_page_number}}">Previous</a>
-                            </li>
-                        {% endif %}
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.</a>
-                        </li>
-
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page= {{ page_obj.next_page_number}}">Next</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page= {{ page_obj.paginator.num_pages}}">Last &raquo;</a>
-                            </li>
-
-                        {% endif %}
-
-                    </div>
-                </ul>
-            </nav>
+            {% include 'jebif_website/pagination.html' %}
 
 {% endblock %}

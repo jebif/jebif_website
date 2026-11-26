@@ -6,9 +6,9 @@
     <div class="container">
         <h2>S'inscrire à {{ event.title }}</h2>
 
-        <p>{{ event.description }}</p>
+        <p>{{ event.description|linebreaksbr }}</p>
         
-        {% if event.max_participants > 0 and event.participant_set.all.count >= event.max_participants %}
+        {% if event.is_full %}
             <p>Le nombre maximum d'inscriptions pour cet événement a été atteint.</p>
             <p>Ce nombre est probablement dû à un espace limité sur le lieu de l'événement. Désolé!</p>
 

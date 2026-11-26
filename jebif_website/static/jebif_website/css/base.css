@@ -1,9 +1,5 @@
-.confirm_deletion {
-    display:none;
-}
-
-.delete_account:active + .confirm_deletion {
-    display:block;
+.delete-account summary {
+    list-style: none;
 }
 
 .announce-box {

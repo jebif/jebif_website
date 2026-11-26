@@ -20,10 +20,7 @@
                 {% for category in categories_nav %}
                     <li class="nav-item {% if category.subcategory.all %} dropdown {% endif %}">
                         <a class="nav-link {% if category.subcategory.all %} dropdown-toggle {% endif %}" 
-                            href="{% url 'articles_per_category' category.slug %}" 
-                            role="button" 
-                            data-bs-toggle="dropdown-toggle" 
-                            aria-expanded="false">
+                            href="{% url 'articles_per_category' category.slug %}">
                             {{ category.name }}
                         </a>
                         {% if category.subcategory.all %}
@@ -71,7 +68,7 @@
                         {% include 'jebif_users/button_login.html'%}
                         {% include 'jebif_users/button_registration.html'%}
                         
-                    </il>
+                    </li>
                 {% endif %}
             </ul>
             
@@ -116,7 +113,7 @@
 
 </style>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 
 document.querySelectorAll(".nav-item.dropdown > a").forEach(link => {
     link.addEventListener("click", function(e) {

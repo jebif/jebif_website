@@ -4,8 +4,8 @@
                 <h5 class="card-title">Prochains Evènements</h5>
                 {% for event in events_sidebar %}
                     <ul>
-                        <li><a href="{% url 'event' event.id %}">{{ event.title }}</a> : {{event.date}} à {{event.localisation}}</li>
-                        <a href="{% url 'event_register' event.id %}">S'inscrire</a>
+                        <li><a href="{% url 'event' event.id %}">{{ event.title }}</a> : {{event.date}} à {{event.localisation}}
+                            <br><a href="{% url 'event_register' event.id %}">S'inscrire</a></li>
                     </ul>
                 {% empty %}
                     <ul><li>Pas d'évènement à venir</li></ul>
@@ -49,23 +49,13 @@
             </div>
         </div>
 
-        <!--IRC part-->
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title">IRC</h5>
-                <ul>
-                    <li>channel IRC: <a href="http://webchat.freenode.net/?channels=jebif" style="color: #436d8f;">#jebif</a></li>
-                </ul>
-            </div>
-        </div>
-
         <!--Recent Articles part-->
         <div class="card mb-3">
             <div class="card-body ">
                 <h5 class="card-title">Articles récents</h5>
                 <ul>
                     {% for article in recent_articles %}
-                        <li><a href=" /article/{{article.slug}} " style="color: #436d8f;"> {{article.title}} </a> </li>
+                        <li><a href="{% url 'article' slug=article.slug %}" style="color: #436d8f;">{{article.title}}</a> </li>
                     {% empty %}
                         <li>Aucun article publié</li>
                     {% endfor %}
@@ -77,8 +67,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title">RSS</h5>
-                <p><a href="https://jebif.fr/mentions-legales/feed/" style="color: #436d8f;">RSS - Articles</a></p>
-                <p><a href="https://jebif.fr/mentions-legales/comments/feed/" style="color: #436d8f;">RSS - Commentaires</a></p>
+                <p><a href="{% url 'articles_feed' %}" style="color: #436d8f;">RSS - Articles</a></p>
             </div>
         </div>
 
@@ -90,6 +79,6 @@
                 <p>{% load static %}
                 <img src="{% static 'jebif_website/images/CreativeCommon88x31.png' %}" alt="creativecommon">
                 </p>
-                À l'exception du logo de l'association, ce blog et son contenu sont sous licence <a href="http://creativecommons.org/licenses/by-sa/3.0/" style="color: #436d8f;">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+                À l'exception du logo de l'association, ce blog et son contenu sont sous licence <a href="https://creativecommons.org/licenses/by-sa/3.0/" style="color: #436d8f;">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
             </div>
         </div>

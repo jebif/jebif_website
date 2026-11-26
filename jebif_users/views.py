@@ -1,116 +1,111 @@
 from django.views import View
 
 from django.contrib import messages
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import get_user_model, login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import LoginView, PasswordResetView
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.db.models.functions import Lower
 from django.db.transaction import atomic
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 import binascii
 import csv
 import datetime
 from pathlib import Path
 
-from .models import *
-from .forms import *
+from jebif_website.utils import get_staff_emails, send_mail_safe, hit_rate_limit
+from .models import UserInfo, end_membership
+from .forms import UserRegisterForm, UserModificationForm, UserInfoForm
 
 
-# Get emails from "Staff" users.
 User = get_user_model()
 
 
-def get_staff_emails():
-    """Emails of "Staff" users.
-    Computed at call time (a query at import time breaks `manage.py check`
-    and freezes the list for the life of the process).
-    """
-    return [user.email for user in User.objects.filter(is_staff=True) if user.email]
-
-
 # ---- Verification link tokens ---------------------------------------------
-# The token is a HMAC-signed, timestamped string (django.core.signing):
-# it cannot be forged without the SECRET_KEY and expires after 24 hours.
 _verify_signer = TimestampSigner(salt="jebif-user-verification")
-VERIFY_TOKEN_MAX_AGE = 60 * 60    # 1 hour
+VERIFY_TOKEN_MAX_AGE = 24 * 60 * 60    # 24 hours (the e-mail says so)
+RESEND_VERIFY_DELAY = 60               # seconds between two "resend" requests
 
 
-def make_verify_token(user):
-    return _verify_signer.sign_object(str(user.pk))
+def make_verify_token(user, adhere):
+    return _verify_signer.sign_object({"uid": user.pk, "email": user.email, "adhere": bool(adhere)})
 
 
-def validate_verify_token(token, uid):
-    """Check that `token` is a fresh, valid signature for the user with pk `uid`."""
+def read_verify_token(token):
+    """Return the payload of a fresh, valid token, or None."""
     try:
         payload = _verify_signer.unsign_object(token, max_age=VERIFY_TOKEN_MAX_AGE)
     except (BadSignature, SignatureExpired, binascii.Error, ValueError, TypeError):
         # Malformed / forged / expired token: treat as invalid, never crash
-        return False
-    return str(payload) == str(uid)
+        return None
+    if not isinstance(payload, dict) or not {"uid", "email", "adhere"} <= payload.keys():
+        return None
+    return payload
 
 
 def ask_membership():
     # Function to automatically send a mail to check the membership (new and renew)
-    msg_subj = "Demande d'adhésion"
-    admin_url = f"{settings.HTTP_DOMAIN}/admin/auth/user/" 
-
+    admin_url = f"{settings.HTTP_DOMAIN}{reverse('admin_subscription')}"
     msg_txt = f"""Bonjour,
-            Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter' :
-            {admin_url}"""
-            
-    send_mail(
-         subject=settings.EMAIL_SUBJECT_PREFIX + msg_subj,
-         message=msg_txt,
-         from_email=settings.DEFAULT_FROM_EMAIL,
-         recipient_list=get_staff_emails(),
-         fail_silently=True
-         )
 
-def resend_validation_mail(request):
-    # Renvoyer le mail de vérification (uniquement pour l'utilisateur connecté)
-    if not request.user.is_authenticated:
-        return redirect("login")
+Une demande d'adhésion ou de ré-adhésion vient d'être postée sur le site. Pour l'accepter :
+{admin_url}"""
+    send_mail_safe(settings.EMAIL_SUBJECT_PREFIX + "Demande d'adhésion", msg_txt, get_staff_emails())
 
-    if request.method == "POST":
-        user_info = UserInfo.objects.filter(user=request.user).first()
-        if user_info and user_info.verified:
-            messages.info(request, "Ton compte est déjà vérifié.")
-            return redirect("profile")
-
-        adhere = bool(user_info.want_member) if user_info else False
-        send_validation_mail(request.user, adhere)
-        messages.success(request, "✅ Un nouveau mail de vérification t'a été envoyé.")
-        return redirect("profile")
-
-    return redirect("profile")
 
 def send_validation_mail(user, adhere: bool):
-    token = make_verify_token(user)
-    domain = settings.HTTP_DOMAIN
-
-    send_mail(
-        subject=settings.EMAIL_SUBJECT_PREFIX + "Creation de compte JeBiF",
-        message=f"""
+    """Send the e-mail address verification link. Returns True if the mail was sent."""
+    token = make_verify_token(user, adhere)
+    link = settings.HTTP_DOMAIN + reverse("verify", kwargs={"token": token})
+    return send_mail_safe(
+        settings.EMAIL_SUBJECT_PREFIX + "Vérification de ton adresse e-mail",
+        f"""
 Bonjour {user.username},
 
-Ton compte sur le site de l'association JeBiF vient d'être créé, mais il n'est pas encore actif.
-Pour vérifier ton adresse mail, clique sur ce lien (valable 24 heures) : {domain}/users/verify/{user.pk}/{token}_{adhere}
+Ton compte sur le site de l'association JeBiF vient d'être créé ou modifié, mais ton adresse e-mail n'est pas encore vérifiée.
+Pour vérifier ton adresse mail, clique sur ce lien (valable 24 heures) : {link}
 
-Une fois ton adresse-mail validée, la demande d'adhésion sera transmise au conseil d'administration qui 
-la considèrera lors de sa prochaine réunion.
+Si tu as demandé à adhérer, une fois ton adresse-mail validée, la demande d'adhésion sera transmise
+au conseil d'administration qui la considèrera lors de sa prochaine réunion.
 
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False
-        )
+        [user.email],
+    )
+
+
+def _validation_mail_message(request, sent):
+    if sent:
+        messages.success(request, "✅ Un mail avec un lien pour confirmer ton adresse t'a été envoyé.")
+    else:
+        messages.warning(request, "⚠️ Le mail de vérification n'a pas pu être envoyé. Connecte-toi et utilise le lien « Renvoyer le mail de validation », ou contacte-nous.")
+
+
+@login_required
+@require_POST
+def resend_validation_mail(request):
+    # Resend the verification mail (only for the logged-in user, POST only, rate limited)
+    user_info = UserInfo.objects.filter(user=request.user).first()
+    if user_info and user_info.verified:
+        messages.info(request, "Ton compte est déjà vérifié.")
+        return redirect("profile")
+
+    if hit_rate_limit("resend_verify", request.user.pk, RESEND_VERIFY_DELAY):
+        messages.error(request, "Un mail vient déjà d'être envoyé, réessaie dans une minute.")
+        return redirect("profile")
+
+    adhere = bool(user_info.want_member) if user_info else False
+    _validation_mail_message(request, send_validation_mail(request.user, adhere))
+    return redirect("profile")
+
 
 class RegisterView(View):
     #View to create a new User
@@ -119,9 +114,8 @@ class RegisterView(View):
         return render(request, 'jebif_users/register.html', {'user_form': user_form})
 
     def post(self, request):
-        
         user_form = UserRegisterForm(request.POST)
-        
+
         if user_form.is_valid():
             with atomic() :
                 #creation of User + empty (unverified) UserInfo
@@ -132,25 +126,24 @@ class RegisterView(View):
                     want_member=False,
                     verified=False,
                 )
-                messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
-            
-            send_validation_mail(user, False)
-            
+            messages.success(request, "✅ Ton compte a été créé.")
+            _validation_mail_message(request, send_validation_mail(user, False))
             return redirect('home')
         else:
             messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
             return render(request, 'jebif_users/register.html', {'user_form': user_form})
+
 
 class AdhesionView(View):
     def get(self, request):
         user_form = UserRegisterForm()
         info_form = UserInfoForm()
         return render(request, 'jebif_users/adhesion.html', {'user_form': user_form, 'info_form': info_form})
-    
+
     def post(self, request):
         user_form = UserRegisterForm(request.POST)
         info_form = UserInfoForm(request.POST)
-        
+
         if user_form.is_valid() and info_form.is_valid():
             with atomic() :
                 #creation of User + UserInfo (unverified, requesting membership)
@@ -162,9 +155,8 @@ class AdhesionView(View):
                 user_info.verified = False
                 user_info.save()
 
-                messages.success(request, "✅ Ton compte a été créé, tu as reçu un mail avec un lien pour confirmer ton inscription.")
-
-            send_validation_mail(user, True)
+            messages.success(request, "✅ Ton compte a été créé.")
+            _validation_mail_message(request, send_validation_mail(user, True))
             return redirect('home')
         else:
             messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
@@ -174,16 +166,10 @@ class AdhesionView(View):
 class CustomLoginView(LoginView):
     template_name = 'jebif_users/login.html'
 
-    # def form_valid(self, form):       #Prefer allowing the User to connect. the user gets a banner telling it to verify its account
-    #     user = form.get_user()
-    #     if hasattr(user, 'info') and (user.is_superuser or user.info.verified): 
-    #         return super().form_valid(form)
-    #     else:
-    #         form.add_error(None, "⚠️ Vous n'avez pas confirmé votre inscription via le mail que vous avez reçu. <a href=''>Renvoyer le mail de validation</a>")
-    #         return self.form_invalid(form)
-
 
 class CustomPasswordResetView(PasswordResetView):
+    # Same message whether an account exists or not: the page must not reveal
+    # which e-mail addresses are registered.
     template_name = 'jebif_users/password_reset.html'
     email_template_name = 'jebif_users/password_reset_email.html'
     subject_template_name = 'jebif_users/password_reset_subject.txt'
@@ -193,14 +179,25 @@ class CustomPasswordResetView(PasswordResetView):
     }
 
     def form_valid(self, form):
-        email = form.cleaned_data['email']
-        user = User.objects.filter(email=email).first()
-        if user:
-            messages.success(self.request, "✅ Si un compte existe avec cet email, un message a été envoyé.")
-            return super().form_valid(form)
-        else:
-            form.add_error(None, "Il n'existe pas de compte avec cette adresse email.")
-            return self.form_invalid(form)
+        messages.success(self.request, "✅ Si un compte existe avec cet email, un message a été envoyé.")
+        return super().form_valid(form)
+
+
+def _parse_bool(value):
+    return str(value).strip().lower() in ("true", "1", "yes", "oui")
+
+
+def _membership_end_after(inscription, today=None):
+    """End of the current yearly membership period that started on `inscription`
+    (the anniversary is kept, so an old membership is not considered expired
+    just because it started several years ago)."""
+    today = today or datetime.date.today()
+    start = inscription
+    end = end_membership(start)
+    while end < today:
+        start = end + datetime.timedelta(1)
+        end = end_membership(start)
+    return start, end
 
 
 def _import_old_account(user, user_info):
@@ -213,7 +210,7 @@ def _import_old_account(user, user_info):
     try:
         with open(fixtures_file, "r", encoding="utf-8") as f:
             for account in csv.DictReader(f, delimiter=","):
-                if account.get("email") != user.email:
+                if (account.get("email") or "").strip().lower() != user.email.lower():
                     continue
 
                 try:
@@ -230,11 +227,10 @@ def _import_old_account(user, user_info):
                 user_info.position = account.get("position") or ""
                 user_info.motivation = account.get("motivation") or ""
                 user_info.inscription_date = inscription
-                user_info.is_member = account.get("active", "False")
+                user_info.is_member = _parse_bool(account.get("active", "False"))
                 user_info.want_member = False
-                user_info.is_deleted = account.get("deleted", "False")
-                user_info.begin_membership = inscription
-                user_info.end_membership = user_info.get_end_membership(inscription)
+                user_info.is_deleted = _parse_bool(account.get("deleted", "False"))
+                user_info.begin_membership, user_info.end_membership = _membership_end_after(inscription)
                 user_info.know_from = "Déjà adhérent"
                 return True
     except (OSError, csv.Error):
@@ -245,20 +241,27 @@ def _import_old_account(user, user_info):
 class VerifyView(View):
     # The token (HMAC-signed + timestamped) MUST be validated before any
     # action: it is the only proof that the requester owns the mailbox.
-    def _get_user(self, uid):
-        try:
-            return User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    # The link is single-use: once the account is verified, it stops working.
+    def _check(self, token):
+        """Return (user, payload) if the link is valid and still usable, else None."""
+        payload = read_verify_token(token)
+        if payload is None:
             return None
+        user = User.objects.filter(pk=payload["uid"], is_active=True).first()
+        # The link is only valid for the address it was sent to
+        if user is None or user.email.lower() != str(payload["email"]).lower():
+            return None
+        return user, payload
 
     def _invalid_link(self, request):
         messages.error(request, "⚠️ Lien de vérification invalide ou expiré. Connecte-toi pour demander un nouveau mail de vérification.")
         return redirect("home")
 
-    def get(self, request, uid, token, adhere=False):
-        user = self._get_user(uid)
-        if user is None or not validate_verify_token(token, uid):
+    def get(self, request, token):
+        checked = self._check(token)
+        if checked is None:
             return self._invalid_link(request)
+        user, payload = checked
 
         user_info = UserInfo.objects.filter(user=user).first()
         if user_info and user_info.verified:
@@ -270,7 +273,7 @@ class VerifyView(View):
             user_info = UserInfo(
                 user=user,
                 email=user.email,
-                want_member=(adhere == "True"),
+                want_member=payload["adhere"],
             )
             existing_account = _import_old_account(user, user_info)
             user_info.save()
@@ -278,12 +281,18 @@ class VerifyView(View):
         info_form = UserInfoForm(instance=user_info)
         return render(request, "jebif_users/fill_info.html", {"existing_account":existing_account, "info_form":info_form})
 
-    def post(self, request, uid, token, adhere):
-        user = self._get_user(uid)
-        if user is None or not validate_verify_token(token, uid):
+    def post(self, request, token):
+        checked = self._check(token)
+        if checked is None:
             return self._invalid_link(request)
+        user, payload = checked
 
         user_info = UserInfo.objects.filter(user=user).first()
+        if user_info and user_info.verified:
+            # Single use: a verified account cannot be modified (nor logged into) with this link
+            messages.info(request, "Ce compte est déjà vérifié, connecte-toi.")
+            return redirect("login")
+
         if user_info:
             info_form = UserInfoForm(request.POST, instance=user_info)
             existing_account = True
@@ -296,17 +305,18 @@ class VerifyView(View):
                 user_info = info_form.save(commit=False)
                 user_info.user = user
                 user_info.email = user.email
-                user_info.want_member = (adhere == "True")
+                user_info.want_member = payload["adhere"] or user_info.want_member
                 user_info.verified = True
                 user_info.save()
 
-                if user_info.want_member:
-                    bonus = "Ton adhésion est en cours d'évaluation par le Conseil d'Administration."
-                elif existing_account:
-                    bonus = "Ton adhésion a été transférée depuis l'ancien site."
-                else:
-                    bonus = ""
-                messages.success(request, f"✅ Tes informations ont été enregistrées. {bonus}".rstrip())
+            if user_info.want_member:
+                bonus = "Ton adhésion est en cours d'évaluation par le Conseil d'Administration."
+                ask_membership()
+            elif existing_account and user_info.is_member:
+                bonus = "Ton adhésion a été transférée depuis l'ancien site."
+            else:
+                bonus = ""
+            messages.success(request, f"✅ Tes informations ont été enregistrées. {bonus}".rstrip())
 
             auth_login(request, user)
             return redirect("profile")
@@ -322,32 +332,45 @@ def profile_view(request):
 
     today = datetime.date.today()
 
-    try:
-        user_info = request.user.info  # get UserInfo linked to User
-    except(TypeError, ValueError, OverflowError, User.info.RelatedObjectDoesNotExist):
+    user_info = getattr(user, "info", None)  # UserInfo linked to User (may not exist, e.g. superuser)
+    if user_info is None:
         messages.error(request, "⚠️ Ton profil est incomplet, contacte un administrateur.")
         return redirect("home")
 
     remaining_time = (user_info.end_membership - today).days
     show_button_membership = (user_info.want_member == False) and ((remaining_time <= 30) or (user_info.is_member == False))
-    
+
     if request.method == "POST":
-        user_form = UserModificationForm(request.POST, instance=request.user, user=request.user)
+        user_form = UserModificationForm(request.POST, instance=user, user=user)
         info_form = UserInfoForm(request.POST, instance=user_info)
         if info_form.is_valid() and user_form.is_valid():
-            user = user_form.save()
-            user_info = info_form.save(commit=False)
-            if user.email != user_info.email:
+            email_changed = user_form.email_changed()
+            with atomic():
+                user = user_form.save()
+                user_info = info_form.save(commit=False)
                 user_info.email = user.email
-            info_form.save()
+                if email_changed:
+                    # The new address must be verified again
+                    user_info.verified = False
+                user_info.save()
+
+            if user_form.password_changed():
+                # Changing the password invalidates the session: keep the user logged in
+                update_session_auth_hash(request, user)
+            messages.success(request, "✅ Tes informations ont été mises à jour.")
+            if email_changed:
+                _validation_mail_message(request, send_validation_mail(user, user_info.want_member))
             return redirect('profile')
+        messages.error(request, "⚠️ Il y a une ou plusieurs erreur(s) dans le formulaire, merci de les corriger.")
     else:
-        user_form = UserModificationForm(instance=user)        #retrieve the known info
+        user_form = UserModificationForm(instance=user, user=user)        #retrieve the known info
         info_form = UserInfoForm(instance=user_info)
 
     return render(request, 'jebif_users/profile.html', {'user_form': user_form, 'info_form': info_form, 'show_button_membership': show_button_membership, 'remaining_time': remaining_time,})
 
+
 @login_required
+@require_POST
 def request_membership(request):
     #Function for user to request the membership
     user_info = getattr(request.user, "info", None)
@@ -355,26 +378,42 @@ def request_membership(request):
         messages.error(request, "⚠️ Ton profil est incomplet, contacte un administrateur.")
         return redirect("home")
 
-    if request.method == "POST":
+    if not user_info.verified:
+        messages.error(request, "⚠️ Vérifie d'abord ton adresse e-mail (lien envoyé par mail) avant de demander l'adhésion.")
+        return redirect("profile")
+
+    if not user_info.want_member:
         user_info.want_member = True
         user_info.save()
-        if settings.DEBUG == False:
-            ask_membership() #function to send a mail to admin
+        ask_membership() #function to send a mail to admin
+    messages.success(request, "✅ Ta demande d'adhésion a été transmise.")
     return redirect('profile')
 
+
 @login_required
+@require_POST
 def delete_account(request):
-    if request.method == "POST":
-        user = request.user
-        # Log out (clear the session) BEFORE deleting the user from the database
-        auth_logout(request)
-        user.delete()
+    user = request.user
+    # Log out (clear the session) BEFORE deleting the user from the database
+    auth_logout(request)
+    user.delete()
+    messages.success(request, "Ton compte a été supprimé.")
     return redirect("home")
+
 
 def is_admin() :
     def validate( u ) :
         return u.is_authenticated and u.is_staff
     return user_passes_test(validate)
+
+
+def can_manage_members() :
+    # Accepting members and exporting their personal data needs the
+    # "change userinfo" permission, not only the staff status
+    def validate( u ) :
+        return u.is_authenticated and u.is_staff and u.has_perm("jebif_users.change_userinfo")
+    return user_passes_test(validate)
+
 
 @is_admin()
 def button_admin(request):
@@ -382,24 +421,22 @@ def button_admin(request):
         return redirect('admin_home')
     else:
         return render(request, 'jebif_users/button_admin.html')
-    
+
 @is_admin()
 def admin_home_view(request):
     return render(request, 'jebif_users/admin_home.html')
 
-@is_admin()
+@can_manage_members()
 def admin_subscription( request ) :
-    infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True)
+    infos = UserInfo.objects.filter(is_member=False, is_deleted=False, want_member=True, verified=True)
     return render(request, "jebif_users/admin_subscription.html", {"infos": infos})
 
 
-@is_admin()
+@can_manage_members()
+@require_POST
 def admin_subscription_accept( request, info_id ) :
     #Function for the admin page in the website (not the interface) to accept subscription.
     #POST only: a state-changing action must not be reachable with a plain GET link (CSRF).
-    if request.method != "POST":
-        return redirect("admin_subscription")
-
     info = get_object_or_404(UserInfo, id=info_id)
     if info.is_member:
         messages.info(request, "Cette adhésion est déjà acceptée.")
@@ -412,8 +449,6 @@ def admin_subscription_accept( request, info_id ) :
         info.init_date(info.inscription_date)
         info.save()
 
-    msg_to = [info.email]
-    msg_subj = "Bienvenue dans l'association JeBiF"
     msg_txt = f"""
 
 Bonjour {info.firstname},
@@ -426,35 +461,53 @@ https://www.iscbsc.org/rsg/rsg-france
 À bientôt,
 L’équipe JeBiF (RSG-France)
 """
-    send_mail(msg_subj, msg_txt, settings.DEFAULT_FROM_EMAIL, msg_to)
+    sent = send_mail_safe(settings.EMAIL_SUBJECT_PREFIX + "Bienvenue dans l'association JeBiF", msg_txt, [info.email])
 
     messages.success(request, "✅ Adhésion acceptée.")
+    if not sent:
+        messages.warning(request, f"⚠️ Le mail de bienvenue n'a pas pu être envoyé à {info.email}.")
     return redirect("admin_subscription")
 
 
-@is_admin()
+@can_manage_members()
+@require_POST
 def admin_subscription_reject( request, info_id ) :
     #Function for the admin page in the website (not the interface) to reject subscription.
-    #POST only: a state-changing action must not be reachable with a plain GET link (CSRF).
-    if request.method != "POST":
-        return redirect("admin_subscription")
-
+    #The account itself is kept (it is not marked as deleted): only the request is refused.
     info = get_object_or_404(UserInfo, id=info_id)
-    if info.is_deleted:
-        messages.info(request, "Cette demande est déjà refusée.")
+    if not info.want_member:
+        messages.info(request, "Cette demande a déjà été traitée.")
         return redirect("admin_subscription")
 
-    info.is_deleted = True
+    info.want_member = False
     info.save()
+
+    msg_txt = f"""
+Bonjour {info.firstname},
+
+Ta demande d'adhésion à l'association JeBiF n'a pas été acceptée par le conseil d'administration.
+N'hésite pas à nous contacter (https://jebif.fr/contact_form/) si tu as des questions.
+
+L’équipe JeBiF (RSG-France)
+"""
+    send_mail_safe(settings.EMAIL_SUBJECT_PREFIX + "Ta demande d'adhésion à JeBiF", msg_txt, [info.email])
 
     messages.success(request, "✅ Demande d'adhésion refusée.")
     return redirect("admin_subscription")
 
 
-@is_admin()
+def csv_safe(value):
+    """Neutralise spreadsheet formulas (CSV injection): a cell starting with
+    = + - @ (or tab / carriage return) is executed by Excel/LibreOffice."""
+    value = "" if value is None else str(value)
+    if value[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
+@can_manage_members()
 def admin_export_csv( request ) :
     #Function for the admin page in the website (not the interface) to export the list of members
-    charset = 'utf-8'
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = 'attachment; filename=membres_jebif.csv'
 
@@ -463,13 +516,14 @@ def admin_export_csv( request ) :
         'Laboratoire', 'Ville', 'Pays', 'Poste actuel',
         'Motivation', 'Date inscription'])
 
-    infos = UserInfo.objects.filter(is_member=True).extra(select={'ord':'lower(lastname)'}).order_by('ord')
+    infos = UserInfo.objects.filter(is_member=True, is_deleted=False).order_by(Lower("lastname"))
 
     for i in infos :
-        writer.writerow([i.lastname, i.firstname, 
+        writer.writerow([csv_safe(v) for v in (
+            i.lastname, i.firstname,
             i.email, i.laboratory, i.city_name,
             i.country, i.position,
             (i.motivation or "").replace("\r\n", " -- "),
-            i.inscription_date.isoformat()])
+            i.inscription_date.isoformat())])
 
     return response

@@ -1,4 +1,5 @@
 {% extends 'jebif_website/base.html' %}
+{% load html_tags %}
 
 {% block content %}
 
@@ -7,9 +8,9 @@
             {% if article %}
                 <div>
                     <a href="{%url 'article' slug=article.slug %}" class="text-decoration-none" style="color: #436d8f;"><h2>{{article.title}}</h2></a>
-                    {{article.content|safe}}
+                    {{ article.content|sanitize_html }}
                     {% if article.pdf %}
-                        <a href="{{ article.pdf.url }}" target="_blank">
+                        <a href="{{ article.pdf.url }}" target="_blank" rel="noopener">
                             Voir le PDF
                         </a>
                     {% endif %}
@@ -20,4 +21,5 @@
 
         {% endfor %}
 
+        {% include 'jebif_website/pagination.html' %}
 {% endblock %}

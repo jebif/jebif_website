@@ -4,17 +4,55 @@
 The goal of this repo is to create the structure of the JeBiF website, previously made with WordPress.
 Depending on external circumstances, the others aspects of the website related to the elections will be added.
 
-## Dependencies
-`python -m pip install Django` for Django, the Python framework used to make this website (Python 3 is required).
+## Installation
+Python 3.12+ is required.
 
-For Bootstrap 5, check the official website: https://getbootstrap.com/docs/5.0/getting-started/download/. It is used to handle code for html pages.
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp jebif_main/.env.example jebif_main/.env   # then edit the values
+python manage.py migrate
+python manage.py populate_category
+python manage.py populate_sidebar
+python manage.py runserver
+```
 
-`pip install django-tinymce` for tinymce, used for writing the article in the admin page.
+## Configuration
+All settings that change between environments are read from `jebif_main/.env` (never commit it).
+See `jebif_main/.env.example` for the full list. The most important ones:
 
-`pip install django-crispy-forms` for cripsy-forms, used to have nicer forms.
-`pip install crispy-bootstrap5` is also needed.
+| Variable | Default | Purpose |
+|---|---|---|
+| `SECRET_KEY` | *(required)* | Long random string |
+| `DEBUG` | `False` | `True` only in development (mails are then printed in the console) |
+| `COOKIE_SECURE` | `True` | Set `False` for local development over plain HTTP |
+| `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` | jebif.fr, beta.jebif.fr | Comma-separated lists |
+| `HTTP_DOMAIN` | `https://jebif.fr` | Domain used in links sent by e-mail |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_FROM` | | SMTP configuration |
+| `CONTACT_EMAIL` | `contact@jebif.fr` | Mailbox receiving the contact form messages |
+| `ADMINS` | *(empty)* | Comma-separated e-mails receiving the server errors |
+| `SHOW_DEV_BANNER` | `False` | Show the "development website" banner (beta.jebif.fr) |
+| `BEHIND_HTTPS_PROXY`, `TRUST_X_FORWARDED_FOR` | `False` | Set `True` behind nginx (if nginx sets these headers) |
+| `SECURE_SSL_REDIRECT`, `SECURE_HSTS_SECONDS` | `False`, `0` | HTTPS hardening, enable in production |
+| `SERVE_MEDIA` | `True` | Set `False` once nginx serves `/media/` |
+| `STATIC_DIR`, `CACHE_DIR`, `LOG_FILE`, `SQLITE_PATH` | inside the project | Paths |
 
-`python -m pip install Pillow` for Pillow, used for Linked Images.
+A Content Security Policy is sent in *report-only* mode (`SECURE_CSP_REPORT_ONLY` in the settings):
+check the browser console for violations, then rename it to `SECURE_CSP` to enforce it.
+
+## Production
+- `python manage.py collectstatic`, serve `STATIC_DIR` (`/staticfiles/`) and `media/` (`/media/`) with nginx.
+- Run with gunicorn behind nginx.
+- Daily cron job (membership expiration and reminder mails):
+  `0 6 * * * cd /path/to/jebif_website && venv/bin/python manage.py expire_memberships`
+  (`--dry-run` shows what would be done).
+
+## Tests
+```bash
+SECRET_KEY=test COOKIE_SECURE=False python manage.py test
+```
+They also run on GitHub Actions for each push (`.github/workflows/tests.yml`).
 
 ## Structure
 This website is made with 7 categories in mind (L'association,  Evènements, Bioinformatique, Vulgarisation, Liens utiles, Nous rejoindre, and Contact). Each category has differents sub-categories. In addition, there is also a home page (Accueil).
@@ -28,7 +66,7 @@ Each page (Accueil, Category and SubCategory) present a Navigation bar (nav.html
 
 ## Users
 In order to add more info to the users, a new class was created, UserInfo. It is accessible by doing user.info when you are using a User.
-The cron part is a replicate in Python3 of the cron part in the old repositories. It may need more adjustements.
+After registration, the user receives a link (valid 24 hours, single use) to verify their e-mail address and complete their information. A membership request is only possible with a verified address and lasts one year.
 
 Each User can have access to its infos from the website, using buttons from the navbar when they are logged in. 
 In case they aren't logged in, a login button and a Registration button are displayed. Else, it's a Profile button and a Logout Button. 
@@ -44,21 +82,6 @@ In case previous categories were made, it will compare the slugs to create or no
 
 Made by Alexandre Lerévérend: ask for any question.
 
-### TODO:
--cron in users is not correct yet, some unknown files are called (need to change links). Need many corrections.
-
--check if emails are sent correctly ( maybe some changes in settings for that too, plus all the methods and functions in users)
-
--add a page with a form to create an election (or not if admin interface is enough)
-
--delete pendingEvents when it's validated (use atomic to not delete is the Event wasn't created)
-
--check setting, maybe change timezone and stuff
-
 -develop more the admin interface for pendingEvents (name, etc)
 
 -Finish the documentation if needed (only models done)
-
--Finish this README.
-
--Re-establish crispyform (the errors aren't breaking anything it seems.)

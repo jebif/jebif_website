@@ -4,3 +4,6 @@ debug.log
 venv
 jebif_env
 fixtures*
+cache
+staticfiles
+debug.log.*

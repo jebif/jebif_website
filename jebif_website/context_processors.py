@@ -1,5 +1,11 @@
-from .models import Category, LinkedImage, Events, WebPlatforms, Article
+from django.conf import settings
 from django.utils import timezone
+
+from .models import Category, LinkedImage, Events, WebPlatforms, Article
+
+def site_settings_processor(request):
+    return {'show_dev_banner': settings.SHOW_DEV_BANNER}
+
 
 def categories_processor(request):
     categories = Category.objects.prefetch_related('subcategory').all()
@@ -13,7 +19,7 @@ def images_sidebar_processor(request):
 
 def events_sidebar_processor(request):
     return {
-        'events_sidebar': Events.objects.filter(active=True).filter(date__gte=timezone.now()).order_by('date')
+        'events_sidebar': Events.objects.filter(active=True, pending=False, date__gte=timezone.now()).order_by('date')
     }
 
 def platforms_sidebar_processor(request):

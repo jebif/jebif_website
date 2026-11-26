@@ -8,12 +8,9 @@
 
     <p><a href="{% url 'admin_subscription' %}"><h4>Page de validation des adhésion</h4></a></p>
 
-    <p><a href="/admin"><h4>Dashboard Django</h4></a></p>
-    <div>
-        <form action="{% url 'admin_export_csv' %}" method="GET" class="form-group my-3 col-6">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Export de la liste des membres en csv</button>
-        </form>
+    <p><a href="{% url 'admin:index' %}"><h4>Dashboard Django</h4></a></p>
+    <div class="my-3">
+        <a href="{% url 'admin_export_csv' %}" class="btn btn-primary">Export de la liste des membres en csv</a>
     </div>
 
 {% endblock content %}

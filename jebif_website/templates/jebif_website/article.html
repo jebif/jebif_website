@@ -1,12 +1,13 @@
 {% extends 'jebif_website/base.html' %}
+{% load html_tags %}
 
 {% block content %}
 
                 <div>
                     <h3>{{article.title}}</h3>
-                    {{article.content|safe}}
+                    {{ article.content|sanitize_html }}
                     {% if article.pdf %}
-                        <a href="{{ article.pdf.url }}" target="_blank">
+                        <a href="{{ article.pdf.url }}" target="_blank" rel="noopener">
                             Voir le PDF
                         </a>
                     {% endif %}
